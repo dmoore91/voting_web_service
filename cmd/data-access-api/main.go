@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	"net/http"
@@ -8,8 +9,6 @@ import (
 	"time"
 	"voting_web_service/internal/app/ping"
 	"voting_web_service/internal/app/users"
-    "database/sql"
-    _ "github.com/go-sql-driver/mysql"
 )
 
 var log = logrus.WithFields(logrus.Fields{"context": "main"})
@@ -22,14 +21,6 @@ func main() {
 
 	// Initialize all Routes
 	InitializeRoutes(router, BasePath)
-
-    // Connect to mysql server
-    db, err := sql.Open("mysql", "docker:docker@tcp(0.0.0.0:3306)/test")
-
-    if err != nil {
-        panic(err.Error())
-    }
-    defer db.Close()
 
 	fileServer := http.FileServer(http.Dir("./html")) // New code
 	router.Handle("/", fileServer)                    // New code
