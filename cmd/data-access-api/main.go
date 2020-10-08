@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -22,6 +23,15 @@ func main() {
 
 	// Initialize all Routes
 	InitializeRoutes(router, BasePath)
+
+	// Connect to mysql server
+	db, err := sql.Open("mysql", "root:root@tcp(localhost:3306)/voting")
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer db.Close()
 
 	fileServer := http.FileServer(http.Dir("./html")) // New code
 	router.Handle("/", fileServer)                    // New code
