@@ -1,6 +1,8 @@
 package main
 
 import (
+	"database/sql"
+	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -9,8 +11,6 @@ import (
 	"time"
 	"voting_web_service/internal/app/ping"
 	"voting_web_service/internal/app/users"
-    "database/sql"
-    _ "github.com/go-sql-driver/mysql"
 )
 
 var log = logrus.WithFields(logrus.Fields{"context": "main"})
@@ -24,20 +24,20 @@ func main() {
 	// Initialize all Routes
 	InitializeRoutes(router, BasePath)
 
-    // Connect to mysql server
-    db, err := sql.Open("mysql", "root:root@tcp(localhost:3306)/")
+	// Connect to mysql server
+	db, err := sql.Open("mysql", "root:root@tcp(localhost:3306)/")
 
-    if err != nil {
-        panic(err.Error())
-    }
-    _,err = db.Exec("CREATE DATABASE testDB")
-    if err != nil {
-        fmt.Println(err.Error())
-    } else {
-        fmt.Println("Successfully created database..")
-    }
+	if err != nil {
+		log.Fatal(err)
+	}
+	_, err = db.Exec("CREATE DATABASE testDB")
+	if err != nil {
+		fmt.Println(err.Error())
+	} else {
+		fmt.Println("Successfully created database..")
+	}
 
-    defer db.Close()
+	defer db.Close()
 
 	fileServer := http.FileServer(http.Dir("./html")) // New code
 	router.Handle("/", fileServer)                    // New code
