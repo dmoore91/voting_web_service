@@ -39,6 +39,14 @@ type LoginCreds struct {
 	Password string `json:"password"`
 }
 
+type Permission struct {
+	Permission string `json:"permission"`
+}
+
+type PermissionsStruct struct {
+	Permissions []Permission `json:"permissions"`
+}
+
 func LoginUser(writer http.ResponseWriter, request *http.Request) {
 
 	decoder := json.NewDecoder(request.Body)
@@ -211,8 +219,53 @@ func AddUser(writer http.ResponseWriter, request *http.Request) {
 	responses.GeneralSuccess(writer, "Success")
 }
 
-func GetPermissionForUser(writer http.ResponseWriter, request *http.Request) {
-	responses.GeneralNotImplemented(writer)
+func GetPermissionsForUser(writer http.ResponseWriter, request *http.Request) {
+	params := mux.Vars(request)
+
+	db, err := sql.Open("mysql", "root:root@tcp(0.0.0.0:3306)/test")
+	if err != nil {
+		responses.GeneralSystemFailure(writer, "Cannot connect to db")
+		log.Error(err)
+		return
+	}
+
+	defer db.Close()
+
+	queryString := "SELECT permission " +
+		"FROM Permissions " +
+		"INNER JOIN User_Permissions ON User_Permissions.permission_id = Permissions.permission_id " +
+		"INNER JOIN Users ON Users.user_id = User_Permissions.user_id " +
+		"WHERE username=?"
+
+	rows, err := db.Query(queryString, params["username"])
+	if err != nil {
+		responses.GeneralSystemFailure(writer, "Failed query")
+		log.Error(err)
+		return
+	}
+
+	var permissions []Permission
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var p = Permission{}
+		err = rows.Scan(&p.Permission)
+
+		if err != nil {
+			responses.GeneralSystemFailure(writer, "Get Failed")
+			log.Error(err)
+			return
+		}
+
+		permissions = append(permissions, p)
+	}
+
+	resp := PermissionsStruct{Permissions: permissions}
+
+	writer.Header().Set("Content-Type", "application/json")
+	writer.WriteHeader(200)
+	_ = json.NewEncoder(writer).Encode(resp)
 }
 
 func AddPermissionForUser(writer http.ResponseWriter, request *http.Request) {
