@@ -5,9 +5,7 @@ import (
 	"strings"
 	"time"
 	"voting_web_service/internal/app/ping"
-
 	"github.com/gorilla/mux"
-
 	"github.com/sirupsen/logrus"
 )
 
