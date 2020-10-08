@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 	"time"
+    "fmt"
 	"voting_web_service/internal/app/ping"
 	"voting_web_service/internal/app/users"
     "database/sql"
@@ -24,11 +25,18 @@ func main() {
 	InitializeRoutes(router, BasePath)
 
     // Connect to mysql server
-    db, err := sql.Open("mysql", "docker:docker@tcp(0.0.0.0:3306)/test")
+    db, err := sql.Open("mysql", "root:root@tcp(localhost:3306)/")
 
     if err != nil {
         panic(err.Error())
     }
+    _,err = db.Exec("CREATE DATABASE testDB")
+    if err != nil {
+        fmt.Println(err.Error())
+    } else {
+        fmt.Println("Successfully created database..")
+    }
+
     defer db.Close()
 
 	fileServer := http.FileServer(http.Dir("./html")) // New code
