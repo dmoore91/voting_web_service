@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 	"voting_web_service/internal/app/ping"
+	"voting_web_service/internal/app/users"
 )
 
 var log = logrus.WithFields(logrus.Fields{"context": "main"})
@@ -36,6 +37,7 @@ func main() {
 
 func InitializeRoutes(router *mux.Router, basePath string) {
 	ping.InitializeRoutes(router, basePath)
+	users.InitializeRoutes(router, basePath)
 }
 
 func Middleware(h http.Handler) http.Handler {
