@@ -27,8 +27,11 @@ type InputUser struct {
 	Party          string `json:"party"`
 }
 
-type Users struct {
-	Users []User
+type UpdateUserStruct struct {
+	Email     string `json:"email"`
+	FirstName string `json:"first name"`
+	LastName  string `json:"last name"`
+	Party     string `json:"party"`
 }
 
 type LoginCreds struct {
@@ -112,7 +115,53 @@ func GetUser(writer http.ResponseWriter, request *http.Request) {
 }
 
 func UpdateUser(writer http.ResponseWriter, request *http.Request) {
-	responses.GeneralNotImplemented(writer)
+
+	params := mux.Vars(request)
+
+	decoder := json.NewDecoder(request.Body)
+	var u UpdateUserStruct
+	err := decoder.Decode(&u)
+	if err != nil {
+		responses.GeneralBadRequest(writer, "Decode Failed")
+		log.Error(err)
+		return
+	}
+
+	db, err := sql.Open("mysql", "root:root@tcp(0.0.0.0:3306)/test")
+	if err != nil {
+		responses.GeneralSystemFailure(writer, "Cannot connect to db")
+		log.Error(err)
+		return
+	}
+
+	defer db.Close()
+
+	queryString := "UPDATE Users " +
+		"SET email=?, first_name=?, last_name=?, party_id=? " +
+		"WHERE username=?"
+
+	//TODO Need to change this to not be hardcoded
+	r, err := db.Exec(queryString, u.Email, u.FirstName, u.LastName, 1, params["username"])
+	if err != nil {
+		responses.GeneralSystemFailure(writer, "Query Failed")
+		log.Error(err)
+		return
+	}
+
+	rowsAffected, err := r.RowsAffected()
+
+	if err != nil {
+		responses.GeneralSystemFailure(writer, "Query Failed")
+		log.Error(err)
+		return
+	}
+
+	if rowsAffected == 0 {
+		responses.GeneralSystemFailure(writer, "Query Failed")
+		return
+	}
+
+	responses.GeneralSuccess(writer, "Success")
 }
 
 func AddUser(writer http.ResponseWriter, request *http.Request) {
