@@ -210,3 +210,15 @@ func AddUser(writer http.ResponseWriter, request *http.Request) {
 
 	responses.GeneralSuccess(writer, "Success")
 }
+
+func GetPermissionForUser(writer http.ResponseWriter, request *http.Request) {
+	responses.GeneralNotImplemented(writer)
+}
+
+func AddPermissionForUser(writer http.ResponseWriter, request *http.Request) {
+	responses.GeneralNotImplemented(writer)
+}
+
+func RemovePermissionForUser(writer http.ResponseWriter, request *http.Request) {
+	responses.GeneralNotImplemented(writer)
+}
