@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS User_Permissions(
 
 CREATE TABLE IF NOT EXISTS Permissions(
     permission_id SERIAL NOT NULL ,
-    permission VARCHAR(100) NOT NULL
+    permission VARCHAR(100) NOT NULL UNIQUE
 );
 
 CREATE TABLE IF NOT EXISTS Party(

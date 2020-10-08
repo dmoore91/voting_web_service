@@ -210,3 +210,73 @@ func AddUser(writer http.ResponseWriter, request *http.Request) {
 
 	responses.GeneralSuccess(writer, "Success")
 }
+
+func GetPermissionForUser(writer http.ResponseWriter, request *http.Request) {
+	responses.GeneralNotImplemented(writer)
+}
+
+func AddPermissionForUser(writer http.ResponseWriter, request *http.Request) {
+	params := mux.Vars(request)
+
+	db, err := sql.Open("mysql", "root:root@tcp(0.0.0.0:3306)/test")
+	if err != nil {
+		responses.GeneralSystemFailure(writer, "Cannot connect to db")
+		log.Error(err)
+		return
+	}
+
+	defer db.Close()
+
+	queryString := "SELECT user_id " +
+		"FROM Users " +
+		"WHERE username=?"
+
+	var userId int
+	err = db.QueryRow(queryString, params["username"]).Scan(&userId)
+	if err != nil {
+		responses.GeneralSystemFailure(writer, "Failed query")
+		log.Error(err)
+		return
+	}
+
+	queryString = "SELECT permission_id " +
+		"FROM Permissions " +
+		"WHERE permission=?"
+
+	var permissionID int
+	err = db.QueryRow(queryString, params["permission"]).Scan(&permissionID)
+	if err != nil {
+		responses.GeneralSystemFailure(writer, "Failed query")
+		log.Error(err)
+		return
+	}
+
+	queryString = "INSERT INTO User_Permissions(permission_id, user_id)  " +
+		"VALUES(?, ?)"
+
+	r, err := db.Exec(queryString, userId, permissionID)
+	if err != nil {
+		responses.GeneralSystemFailure(writer, "Query Failed")
+		log.Error(err)
+		return
+	}
+
+	rowsAffected, err := r.RowsAffected()
+
+	if err != nil {
+		responses.GeneralSystemFailure(writer, "Query Failed")
+		log.Error(err)
+		return
+	}
+
+	if rowsAffected == 0 {
+		responses.GeneralSystemFailure(writer, "Query Failed")
+		return
+	}
+
+	responses.GeneralSuccess(writer, "Success")
+}
+
+func RemovePermissionForUser(writer http.ResponseWriter, request *http.Request) {
+	responses.GeneralNotImplemented(writer)
+}
