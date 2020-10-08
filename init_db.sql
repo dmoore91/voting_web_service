@@ -2,7 +2,7 @@ BEGIN ;
 
 CREATE TABLE IF NOT EXISTS Users(
     user_id SERIAL NOT NULL ,
-    username VARCHAR(150) NOT NULL ,
+    username VARCHAR(150) NOT NULL UNIQUE,
     hashed_password VARCHAR(300) NOT NULL ,
     email VARCHAR(254) NOT NULL,
     first_name VARCHAR(100) NOT NULL,
