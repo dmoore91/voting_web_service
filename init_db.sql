@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS Users(
 );
 
 CREATE TABLE IF NOT EXISTS User_Permissions(
-    permission_id SERIAL NOT NULL ,
+    permission_id INTEGER NOT NULL ,
     user_id INTEGER NOT NULL
 );
 
