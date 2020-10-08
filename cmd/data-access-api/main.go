@@ -34,7 +34,7 @@ func main() {
 	defer db.Close()
 
 	fileServer := http.FileServer(http.Dir("./static")) // New code
-	router.Handle("/", fileServer)                    // New code
+	router.Handle("/", fileServer)                      // New code
 
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./static/")))
 
@@ -58,7 +58,7 @@ func InitializeRoutes(router *mux.Router, basePath string) {
 
 func Middleware(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if strings.Compare("/dal/ping", r.URL.Path) != 0 {
+		if strings.Compare("/voting/ping", r.URL.Path) != 0 {
 			log.Info(r.Method + " " + r.URL.Path)
 		}
 		h.ServeHTTP(w, r)
