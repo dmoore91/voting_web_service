@@ -1,5 +1,9 @@
 BEGIN ;
 
+CREATE DATABASE IF NOT EXISTS voting;
+
+USE voting;
+
 CREATE TABLE IF NOT EXISTS Users(
     user_id SERIAL NOT NULL ,
     username VARCHAR(150) NOT NULL UNIQUE,
