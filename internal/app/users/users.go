@@ -19,7 +19,7 @@ type Users struct {
 	Users []User
 }
 
-func GetUsers(writer http.ResponseWriter, request *http.Request) {
+func LoginUser(writer http.ResponseWriter, request *http.Request) {
 	responses.GeneralNotImplemented(writer)
 }
 

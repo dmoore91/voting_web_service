@@ -17,6 +17,7 @@ func main() {
 	router := mux.NewRouter()
 	router.Use(Middleware)
 	AttachSwaggerDocs(router, BasePath)
+
 	// Initialize all Routes
 	InitializeRoutes(router, BasePath)
 
