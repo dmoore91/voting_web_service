@@ -33,8 +33,10 @@ func main() {
 
 	defer db.Close()
 
-	fileServer := http.FileServer(http.Dir("./html")) // New code
+	fileServer := http.FileServer(http.Dir("./static")) // New code
 	router.Handle("/", fileServer)                    // New code
+
+	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./static/")))
 
 	server := &http.Server{
 		Addr:           ":8880",
