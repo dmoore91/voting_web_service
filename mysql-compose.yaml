@@ -1,0 +1,14 @@
+database:
+    image: mysql:latest
+    ports:
+        - "3306:3306"
+    command: --init-file /data/application/init.sql
+    volumes:
+        - ./init_db.sql:/data/application/init.sql
+    environment:
+        MYSQL_ROOT_PASSWORD: secret
+        MYSQL_DATABASE: voting
+        MYSQL_USER: bob
+        MYSQL_PASSWORD: secret
+    container_name: mysql_db
+    tty: true
