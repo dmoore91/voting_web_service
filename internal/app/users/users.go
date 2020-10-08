@@ -1,7 +1,6 @@
 package users
 
 import (
-	"context"
 	"database/sql"
 	"encoding/json"
 	log "github.com/sirupsen/logrus"
@@ -11,6 +10,15 @@ import (
 
 type User struct {
 	UserId         int    `json:"user_id"`
+	Username       string `json:"username"`
+	HashedPassword string `json:"password"`
+	Email          string `json:"email"`
+	FirstName      string `json:"first name"`
+	LastName       string `json:"last name"`
+	Party          string `json:"party"`
+}
+
+type InputUser struct {
 	Username       string `json:"username"`
 	HashedPassword string `json:"password"`
 	Email          string `json:"email"`
@@ -53,7 +61,7 @@ func LoginUser(writer http.ResponseWriter, request *http.Request) {
 		"WHERE username=? AND hashed_password=?"
 
 	var exists bool
-	err = db.QueryRowContext(context.Background(), queryString, lc.Username, lc.Password).Scan(&exists)
+	err = db.QueryRow(queryString, lc.Username, lc.Password).Scan(&exists)
 	if err != nil {
 		if err.Error() != "no rows in result set" {
 			responses.GeneralSuccess(writer, "User does not exist")
@@ -81,5 +89,48 @@ func UpdateUser(writer http.ResponseWriter, request *http.Request) {
 }
 
 func AddUser(writer http.ResponseWriter, request *http.Request) {
-	responses.GeneralNotImplemented(writer)
+
+	decoder := json.NewDecoder(request.Body)
+	var u InputUser
+	err := decoder.Decode(&u)
+	if err != nil {
+		responses.GeneralBadRequest(writer, "Decode Failed")
+		log.Error(err)
+		return
+	}
+
+	db, err := sql.Open("mysql", "root:root@tcp(0.0.0.0:3306)/test")
+	if err != nil {
+		responses.GeneralSystemFailure(writer, "Cannot connect to db")
+		log.Error(err)
+		return
+	}
+
+	defer db.Close()
+
+	queryString := "INSERT INTO Users(username, hashed_password, email, first_name, last_name, party_id)  " +
+		"VALUES(?, ?, ?, ?, ?, ?)"
+
+	//TODO Need to change this to not be hardcoded
+	r, err := db.Exec(queryString, u.Username, u.HashedPassword, u.Email, u.FirstName, u.FirstName, 1)
+	if err != nil {
+		responses.GeneralSystemFailure(writer, "Query Failed")
+		log.Error(err)
+		return
+	}
+
+	rowsAffected, err := r.RowsAffected()
+
+	if err != nil {
+		responses.GeneralSystemFailure(writer, "Query Failed")
+		log.Error(err)
+		return
+	}
+
+	if rowsAffected == 0 {
+		responses.GeneralSystemFailure(writer, "Query Failed")
+		return
+	}
+
+	responses.GeneralSuccess(writer, "Success")
 }
