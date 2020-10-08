@@ -20,7 +20,6 @@ function signin() {
 function signup(event) {
     var formData = getFormData('#signup-form');
     JSON.stringify(formData);
-
     $.ajax({
         type: 'POST',
         data: JSON.stringify(formData),
