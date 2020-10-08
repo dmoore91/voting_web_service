@@ -3,19 +3,19 @@ package users
 import (
 	"database/sql"
 	"encoding/json"
+	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"voting_web_service/internal/app/responses"
 )
 
 type User struct {
-	UserId         int    `json:"user_id"`
-	Username       string `json:"username"`
-	HashedPassword string `json:"password"`
-	Email          string `json:"email"`
-	FirstName      string `json:"first name"`
-	LastName       string `json:"last name"`
-	Party          string `json:"party"`
+	UserId    int    `json:"user_id"`
+	Username  string `json:"username"`
+	Email     string `json:"email"`
+	FirstName string `json:"first name"`
+	LastName  string `json:"last name"`
+	Party     string `json:"party"`
 }
 
 type InputUser struct {
@@ -81,7 +81,34 @@ func LoginUser(writer http.ResponseWriter, request *http.Request) {
 }
 
 func GetUser(writer http.ResponseWriter, request *http.Request) {
-	responses.GeneralNotImplemented(writer)
+
+	params := mux.Vars(request)
+
+	db, err := sql.Open("mysql", "root:root@tcp(0.0.0.0:3306)/test")
+	if err != nil {
+		responses.GeneralSystemFailure(writer, "Cannot connect to db")
+		log.Error(err)
+		return
+	}
+
+	defer db.Close()
+
+	queryString := "SELECT user_id, username, email, first_name, last_name, party_id " +
+		"FROM Users " +
+		"WHERE username=?"
+
+	var user User
+	err = db.QueryRow(queryString, params["username"]).Scan(&user.UserId, &user.Username, &user.Email, &user.FirstName,
+		&user.LastName, &user.Party)
+	if err != nil {
+		responses.GeneralSystemFailure(writer, "Failed query")
+		log.Error(err)
+		return
+	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	writer.WriteHeader(200)
+	_ = json.NewEncoder(writer).Encode(user)
 }
 
 func UpdateUser(writer http.ResponseWriter, request *http.Request) {
