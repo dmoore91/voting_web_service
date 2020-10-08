@@ -22,8 +22,8 @@ type InputUser struct {
 	Username       string `json:"username"`
 	HashedPassword string `json:"password"`
 	Email          string `json:"email"`
-	FirstName      string `json:"first name"`
-	LastName       string `json:"last name"`
+	FirstName      string `json:"first_name"`
+	LastName       string `json:"last_name"`
 	Party          string `json:"party"`
 }
 
