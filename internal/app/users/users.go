@@ -173,7 +173,7 @@ func UpdateUser(writer http.ResponseWriter, request *http.Request) {
 }
 
 func AddUser(writer http.ResponseWriter, request *http.Request) {
-
+	log.Info("Hits this!")
 	decoder := json.NewDecoder(request.Body)
 	var u InputUser
 	err := decoder.Decode(&u)
