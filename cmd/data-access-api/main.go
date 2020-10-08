@@ -1,12 +1,12 @@
 package main
 
 import (
+	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
 	"net/http"
 	"strings"
 	"time"
 	"voting_web_service/internal/app/ping"
-	"github.com/gorilla/mux"
-	"github.com/sirupsen/logrus"
 )
 
 var log = logrus.WithFields(logrus.Fields{"context": "main"})
@@ -18,6 +18,9 @@ func main() {
 	AttachSwaggerDocs(router, BasePath)
 	// Initialize all Routes
 	InitializeRoutes(router, BasePath)
+
+	fileServer := http.FileServer(http.Dir("./html")) // New code
+	router.Handle("/", fileServer)                    // New code
 
 	server := &http.Server{
 		Addr:           ":8880",
