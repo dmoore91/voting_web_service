@@ -75,7 +75,7 @@ func LoginUser(writer http.ResponseWriter, request *http.Request) {
 	err = db.QueryRow(queryString, lc.Username, lc.Password).Scan(&exists)
 	if err != nil {
 		if err.Error() != "no rows in result set" {
-			responses.GeneralSuccess(writer, "User does not exist")
+			responses.GeneralNoContent(writer, "User does not exist")
 			return
 		} else {
 			responses.GeneralSystemFailure(writer, "Failed query")
