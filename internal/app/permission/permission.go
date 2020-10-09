@@ -15,6 +15,32 @@ type UsersStruct struct {
 }
 
 func AddPermission(writer http.ResponseWriter, request *http.Request) {
+	// POST /permission/{permission}
+	//
+	// Add new permission to database
+	//
+	// ---
+	// produces:
+	// - application/json
+	//  parameters:
+	// 	- name: permission
+	//   in: path
+	//   description: permission to add
+	//   type: string
+	//   required: true
+	// responses:
+	//   '200':
+	//     description: permission added
+	//     schema:
+	//       "$ref": "#/definitions/generalResponse"
+	//   '400':
+	//     description: bad request
+	//     schema:
+	//       "$ref": "#/definitions/generalResponse"
+	//   '500':
+	//     description: server error
+	//     schema:
+	//       "$ref": "#/definitions/generalResponse"
 	params := mux.Vars(request)
 
 	db, err := sql.Open("mysql", "root:secret@tcp(0.0.0.0:3306)/voting")
@@ -53,6 +79,32 @@ func AddPermission(writer http.ResponseWriter, request *http.Request) {
 }
 
 func GetUsersForPermission(writer http.ResponseWriter, request *http.Request) {
+	// GET /permission/{permission}
+	//
+	// Get users for permission
+	//
+	// ---
+	// produces:
+	// - application/json
+	//  parameters:
+	// 	- name: permission
+	//   in: path
+	//   description: Get users that have permission
+	//   type: string
+	//   required: true
+	// responses:
+	//   '200':
+	//     description: Return list of users
+	//     schema:
+	//       "$ref": "#/definitions/generalResponse"
+	//   '400':
+	//     description: bad request
+	//     schema:
+	//       "$ref": "#/definitions/generalResponse"
+	//   '500':
+	//     description: server error
+	//     schema:
+	//       "$ref": "#/definitions/generalResponse"
 	params := mux.Vars(request)
 
 	db, err := sql.Open("mysql", "root:secret@tcp(0.0.0.0:3306)/voting")
