@@ -196,7 +196,7 @@ func AddUser(writer http.ResponseWriter, request *http.Request) {
 		"VALUES(?, ?, ?, ?, ?, ?)"
 
 	//TODO Need to change this to not be hardcoded
-	r, err := db.Exec(queryString, u.Username, u.HashedPassword, u.Email, u.FirstName, u.FirstName, 1)
+	r, err := db.Exec(queryString, u.Username, u.HashedPassword, u.Email, u.FirstName, u.LastName, 1)
 	if err != nil {
 		responses.GeneralSystemFailure(writer, "Query Failed")
 		log.Error(err)
