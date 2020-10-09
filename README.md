@@ -5,3 +5,7 @@
 
 ### MySQL Server Setup ###
 Run the docker compose file from the top directory and ensure that the init_db.sql file and mysql-compose.yaml files are present. Run `sudo docker-compose -f mysql-compose.yaml up --build`. Clean up by running with `sudo docker-compose down -v --remove-orphans`.
+
+### Run Go API ###
+* Navigate to cmd/voting_web_service/main.go
+* Execute go run main.go
