@@ -87,7 +87,7 @@ func LoginUser(writer http.ResponseWriter, request *http.Request) {
 	if exists {
 		responses.GeneralSuccess(writer, "User Exists")
 	} else {
-		responses.GeneralSuccess(writer, "User does not exist")
+		responses.GeneralNoContent(writer, "User does not exist")
 	}
 }
 
