@@ -18,6 +18,7 @@ type User struct {
 	Party     string `json:"party"`
 }
 
+// swagger:model newUserInfo
 type InputUser struct {
 	Username       string `json:"username"`
 	HashedPassword string `json:"password"`
@@ -27,6 +28,7 @@ type InputUser struct {
 	Party          string `json:"party"`
 }
 
+// swagger:model updateUserInfo
 type UpdateUserStruct struct {
 	Email     string `json:"email"`
 	FirstName string `json:"first name"`
@@ -34,6 +36,7 @@ type UpdateUserStruct struct {
 	Party     string `json:"party"`
 }
 
+// swagger:model loginCreds
 type LoginCreds struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
@@ -48,6 +51,37 @@ type PermissionsStruct struct {
 }
 
 func LoginUser(writer http.ResponseWriter, request *http.Request) {
+	// POST /user/login
+	//
+	// Endpoint
+	//
+	// ---
+	// produces:
+	// - application/json
+	//  parameters:
+	//	 - name: login_info
+	//	   in: body
+	//	   description: username and password to login
+	//	   schema:
+	//	     "$ref": "#/definitions/loginCreds"
+	//	   required: true
+	// responses:
+	//   '200':
+	//     description: if user exists
+	//     schema:
+	//       "$ref": "#/definitions/generalResponse"
+	//   '204':
+	//     description: if user doesn't exists
+	//     schema:
+	//       "$ref": "#/definitions/generalResponse"
+	//   '400':
+	//     description: bad request
+	//     schema:
+	//       "$ref": "#/definitions/generalResponse"
+	//   '500':
+	//     description: server error
+	//     schema:
+	//       "$ref": "#/definitions/generalResponse"
 
 	decoder := json.NewDecoder(request.Body)
 	var lc LoginCreds
@@ -92,6 +126,32 @@ func LoginUser(writer http.ResponseWriter, request *http.Request) {
 }
 
 func GetUser(writer http.ResponseWriter, request *http.Request) {
+	// GET /user/{username}
+	//
+	// Endpoint
+	//
+	// ---
+	// produces:
+	// - application/json
+	//  parameters:
+	// - name: username
+	//   in: path
+	//   description: username for user
+	//   type: string
+	//   required: true
+	// responses:
+	//   '200':
+	//     description: if user is logged in
+	//     schema:
+	//       "$ref": "#/definitions/generalResponse"
+	//   '400':
+	//     description: bad request
+	//     schema:
+	//       "$ref": "#/definitions/generalResponse"
+	//   '500':
+	//     description: server error
+	//     schema:
+	//       "$ref": "#/definitions/generalResponse"
 
 	params := mux.Vars(request)
 
@@ -123,6 +183,38 @@ func GetUser(writer http.ResponseWriter, request *http.Request) {
 }
 
 func UpdateUser(writer http.ResponseWriter, request *http.Request) {
+	// PUT /user/{username}
+	//
+	// Endpoint to update user info. Cannot change username, password or user_id
+	//
+	// ---
+	// produces:
+	// - application/json
+	//  parameters:
+	// 	- name: username
+	//   in: path
+	//   description: username for user
+	//   type: string
+	//   required: true
+	//	- name: user
+	//	  in: body
+	//	  description: info to update user
+	//	  schema:
+	//	    "$ref": "#/definitions/updateUserInfo"
+	//	  required: true
+	// responses:
+	//   '200':
+	//     description: user updated
+	//     schema:
+	//       "$ref": "#/definitions/generalResponse"
+	//   '400':
+	//     description: bad request
+	//     schema:
+	//       "$ref": "#/definitions/generalResponse"
+	//   '500':
+	//     description: server error
+	//     schema:
+	//       "$ref": "#/definitions/generalResponse"
 
 	params := mux.Vars(request)
 
@@ -173,6 +265,33 @@ func UpdateUser(writer http.ResponseWriter, request *http.Request) {
 }
 
 func AddUser(writer http.ResponseWriter, request *http.Request) {
+	// POST /user
+	//
+	// Endpoint to add user
+	//
+	// ---
+	// produces:
+	// - application/json
+	//  parameters:
+	//	- name: user
+	//	  in: body
+	//	  description: new user info
+	//	  schema:
+	//	    "$ref": "#/definitions/newUserInfo"
+	//	  required: true
+	// responses:
+	//   '200':
+	//     description: user added
+	//     schema:
+	//       "$ref": "#/definitions/generalResponse"
+	//   '400':
+	//     description: bad request
+	//     schema:
+	//       "$ref": "#/definitions/generalResponse"
+	//   '500':
+	//     description: server error
+	//     schema:
+	//       "$ref": "#/definitions/generalResponse"
 
 	decoder := json.NewDecoder(request.Body)
 	var u InputUser
@@ -220,6 +339,33 @@ func AddUser(writer http.ResponseWriter, request *http.Request) {
 }
 
 func GetPermissionsForUser(writer http.ResponseWriter, request *http.Request) {
+	// GET /user/permission/{username}
+	//
+	// Gets list of permissions for user
+	//
+	// ---
+	// produces:
+	// - application/json
+	//  parameters:
+	// 	- name: username
+	//   in: path
+	//   description: username for user we want permissions for
+	//   type: string
+	//   required: true
+	// responses:
+	//   '200':
+	//     description: permission we got
+	//     schema:
+	//       "$ref": "#/definitions/generalResponse"
+	//   '400':
+	//     description: bad request
+	//     schema:
+	//       "$ref": "#/definitions/generalResponse"
+	//   '500':
+	//     description: server error
+	//     schema:
+	//       "$ref": "#/definitions/generalResponse"
+
 	params := mux.Vars(request)
 
 	db, err := sql.Open("mysql", "root:secret@tcp(0.0.0.0:3306)/voting")
@@ -269,6 +415,38 @@ func GetPermissionsForUser(writer http.ResponseWriter, request *http.Request) {
 }
 
 func AddPermissionForUser(writer http.ResponseWriter, request *http.Request) {
+	// POST /user/{username}/{permission}
+	//
+	// Add permission represented by permission and link to username
+	//
+	// ---
+	// produces:
+	// - application/json
+	//  parameters:
+	// 	- name: username
+	//   in: path
+	//   description: username to add permissions for
+	//   type: string
+	//   required: true
+	// 	- name: permission
+	//   in: path
+	//   description: permission to link with user
+	//   type: string
+	//   required: true
+	// responses:
+	//   '200':
+	//     description: permission we got
+	//     schema:
+	//       "$ref": "#/definitions/generalResponse"
+	//   '400':
+	//     description: bad request
+	//     schema:
+	//       "$ref": "#/definitions/generalResponse"
+	//   '500':
+	//     description: server error
+	//     schema:
+	//       "$ref": "#/definitions/generalResponse"
+
 	params := mux.Vars(request)
 
 	db, err := sql.Open("mysql", "root:secret@tcp(0.0.0.0:3306)/voting")
@@ -331,6 +509,38 @@ func AddPermissionForUser(writer http.ResponseWriter, request *http.Request) {
 }
 
 func RemovePermissionForUser(writer http.ResponseWriter, request *http.Request) {
+	// DELETE /user/{username}/{permission}
+	//
+	// Delete permission represented by permission from username
+	//
+	// ---
+	// produces:
+	// - application/json
+	//  parameters:
+	// 	- name: username
+	//   in: path
+	//   description: username to delete permissions for
+	//   type: string
+	//   required: true
+	// 	- name: permission
+	//   in: path
+	//   description: permission to delete
+	//   type: string
+	//   required: true
+	// responses:
+	//   '200':
+	//     description: delete permission
+	//     schema:
+	//       "$ref": "#/definitions/generalResponse"
+	//   '400':
+	//     description: bad request
+	//     schema:
+	//       "$ref": "#/definitions/generalResponse"
+	//   '500':
+	//     description: server error
+	//     schema:
+	//       "$ref": "#/definitions/generalResponse"
+
 	params := mux.Vars(request)
 
 	db, err := sql.Open("mysql", "root:secret@tcp(0.0.0.0:3306)/voting")
