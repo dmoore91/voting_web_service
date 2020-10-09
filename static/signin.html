@@ -1,34 +1,24 @@
 <!DOCTYPE html>
 <html>
-<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
-<script type="text/javascript" src="js/endpoints.js"></script>
-<link rel="stylesheet" href="css/styling.css">
-<body>
-<form id="signin-form" onsubmit="signin()" style="border:1px solid #ccc">
-    <div class="container">
-        <h1>Sign In</h1>
-        <hr>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+    <script type="text/javascript" src="js/endpoints.js"></script>
+    <link rel="stylesheet" href="css/styling.css">
+    <body>
+        <form id="signin-form" onsubmit="signin()" style="border:1px solid #ccc">
+            <div class="container">
+                <h1>Sign In</h1>
+                <hr>
+                <label for="email"><b>Username</b></label>
+                <input type="text" placeholder="Enter Email" name="username" required>
 
-        <label for="email"><b>username</b></label>
-        <input type="text" placeholder="Enter Email" name="email" required>
+                <label for="password"><b>Password</b></label>
+                <input type="password" placeholder="Enter Password" name="password" required>
 
-        <label for="password"><b>Password</b></label>
-        <input type="password" placeholder="Enter Password" name="password" required>
-
-        <div class="clearfix">
-            <button type="submit" class="signinbtn">Sign In</button>
-        </div>
-    </div>
-</form>
-
-</body>
-<script>
-    $.ajax({
-        dataType: "text",
-        url: "http://localhost:8880/voting/ping"
-    }).then(function(data) {
-        console.log(data)
-    });
-</script>
+                <div class="clearfix">
+                    <button type="submit" class="signinbtn">Sign In</button>
+                </div>
+            </div>
+        </form>
+    </body>
 </html>

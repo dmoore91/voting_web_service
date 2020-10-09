@@ -9,24 +9,39 @@ function getFormData(formName) {
     $(formdata ).each(function(index, obj){
         data[obj.name] = obj.value;
     });
-    return data
+    return data;
 }
+
 
 function signin() {
     var formData = getFormData('#signin-form');
+    JSON.stringify(formData);
+    $.ajax({
+        type: 'POST',
+        data: JSON.stringify(formData),
+        dataType: "text",
+        url: "http://localhost:8880/voting/login",
+        statusCode: {
+            200: function(responseObject, textStatus, jqXHR) {
+                window.location.href = './dashboard.html';
+            }
+        }
+    });
 }
 
 
-function signup(event) {
+function signup() {
     var formData = getFormData('#signup-form');
     JSON.stringify(formData);
     $.ajax({
         type: 'POST',
         data: JSON.stringify(formData),
         dataType: "text",
-        url: "http://localhost:8880/voting/user"
-    }).then(function(e) {
-        console.log(e)
-        debugger;
+        url: "http://localhost:8880/voting/user",
+        statusCode: {
+            200: function(responseObject, textStatus, jqXHR) {
+                window.location.href = './dashboard.html';
+            }
+        }
     });
 }
