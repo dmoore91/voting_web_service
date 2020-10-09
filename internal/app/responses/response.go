@@ -29,6 +29,10 @@ func GeneralSuccess(writer http.ResponseWriter, message string) {
 	respond(writer, http.StatusOK, message)
 }
 
+func GeneralNoContent(writer http.ResponseWriter, message string) {
+	respond(writer, http.StatusNoContent, message)
+}
+
 func GeneralBadRequest(writer http.ResponseWriter, message string) {
 	respond(writer, http.StatusBadRequest, message)
 }

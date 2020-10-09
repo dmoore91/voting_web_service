@@ -22,8 +22,8 @@ type InputUser struct {
 	Username       string `json:"username"`
 	HashedPassword string `json:"password"`
 	Email          string `json:"email"`
-	FirstName      string `json:"first name"`
-	LastName       string `json:"last name"`
+	FirstName      string `json:"first_name"`
+	LastName       string `json:"last_name"`
 	Party          string `json:"party"`
 }
 
@@ -87,7 +87,7 @@ func LoginUser(writer http.ResponseWriter, request *http.Request) {
 	if exists {
 		responses.GeneralSuccess(writer, "User Exists")
 	} else {
-		responses.GeneralSuccess(writer, "User does not exist")
+		responses.GeneralNoContent(writer, "User does not exist")
 	}
 }
 
@@ -196,7 +196,7 @@ func AddUser(writer http.ResponseWriter, request *http.Request) {
 		"VALUES(?, ?, ?, ?, ?, ?)"
 
 	//TODO Need to change this to not be hardcoded
-	r, err := db.Exec(queryString, u.Username, u.HashedPassword, u.Email, u.FirstName, u.FirstName, 1)
+	r, err := db.Exec(queryString, u.Username, u.HashedPassword, u.Email, u.FirstName, u.LastName, 1)
 	if err != nil {
 		responses.GeneralSystemFailure(writer, "Query Failed")
 		log.Error(err)
