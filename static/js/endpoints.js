@@ -13,6 +13,9 @@ function getFormData(formName) {
 }
 
 
+/**
+ * Gets triggered when the user signs in
+ */
 function signin() {
     var formData = getFormData('#signin-form');
     JSON.stringify(formData);
@@ -30,6 +33,9 @@ function signin() {
 }
 
 
+/**
+ * Gets triggered when the user signs up
+ */
 function signup() {
     var formData = getFormData('#signup-form');
     JSON.stringify(formData);
