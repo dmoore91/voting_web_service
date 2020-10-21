@@ -13,6 +13,7 @@ import (
 	"voting_web_service/internal/app/permission"
 	"voting_web_service/internal/app/ping"
 	"voting_web_service/internal/app/users"
+	"voting_web_service/internal/app/voting"
 )
 
 var log = logrus.WithFields(logrus.Fields{"context": "main"})
@@ -58,6 +59,7 @@ func InitializeRoutes(router *mux.Router, basePath string) {
 	permission.InitializeRoutes(router, basePath)
 	party.InitializeRoutes(router, basePath)
 	candidate.InitializeRoutes(router, basePath)
+	voting.InitializeRoutes(router, basePath)
 }
 
 func Middleware(h http.Handler) http.Handler {

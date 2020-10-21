@@ -9,18 +9,6 @@ import (
 	"voting_web_service/internal/app/responses"
 )
 
-// swagger:model candidate
-type candidate struct {
-	CandidateID int `json:"candidate_id"`
-	UserId      int `json:"user_id"`
-	PartyId     int `json:"party_id"`
-}
-
-// swagger:model candidateList
-type candidateList struct {
-	Candidates []candidate `json:"candidates"`
-}
-
 func CreateCandidate(writer http.ResponseWriter, request *http.Request) {
 	// POST /candidate/{user}/{party}
 	//
@@ -113,7 +101,7 @@ func GetCandidates(writer http.ResponseWriter, request *http.Request) {
 	//   '200':
 	//     description: List of candidates
 	//     schema:
-	//       "$ref": "#/definitions/generalResponse"
+	//       "$ref": "#/definitions/candidateList"
 	//   '400':
 	//     description: bad request
 	//     schema:
@@ -142,12 +130,12 @@ func GetCandidates(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	var candidates []candidate
+	var candidates []Candidate
 
 	defer rows.Close()
 
 	for rows.Next() {
-		var c = candidate{}
+		var c = Candidate{}
 		err = rows.Scan(&c.CandidateID, &c.UserId, &c.PartyId)
 
 		if err != nil {
@@ -159,7 +147,7 @@ func GetCandidates(writer http.ResponseWriter, request *http.Request) {
 		candidates = append(candidates, c)
 	}
 
-	resp := candidateList{Candidates: candidates}
+	resp := CandidateList{Candidates: candidates}
 
 	writer.Header().Set("Content-Type", "application/json")
 	writer.WriteHeader(200)
@@ -184,7 +172,7 @@ func GetCandidate(writer http.ResponseWriter, request *http.Request) {
 	//   '200':
 	//     description: candidate
 	//     schema:
-	//       "$ref": "#/definitions/generalResponse"
+	//       "$ref": "#/definitions/candidate"
 	//   '400':
 	//     description: bad request
 	//     schema:
@@ -209,7 +197,7 @@ func GetCandidate(writer http.ResponseWriter, request *http.Request) {
 		"FROM Candidate " +
 		"WHERE candidate_id=?"
 
-	var c candidate
+	var c Candidate
 
 	err = db.QueryRow(queryString, params["candidate_id"]).Scan(&c.CandidateID, &c.UserId, &c.PartyId)
 	if err != nil {
