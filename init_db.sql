@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS Candidate(
 );
 
 CREATE TABLE IF NOT EXISTS Votes(
-    candidiate_id INTEGER NOT NULL ,
+    candidate_id INTEGER NOT NULL ,
     votes INTEGER DEFAULT 0
 );
 
