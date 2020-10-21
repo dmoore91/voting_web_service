@@ -150,7 +150,89 @@ func GetParties(writer http.ResponseWriter, request *http.Request) {
 }
 
 func LinkUserAndParty(writer http.ResponseWriter, request *http.Request) {
-	responses.GeneralNotImplemented(writer)
+	// POST /party/link/{user}/{party}
+	//
+	// Endpoint to link user and party
+	//
+	// ---
+	// produces:
+	// - application/json
+	//	- name: party
+	//	  in: query
+	//	  description: name of party to link
+	//	  type: string
+	//	  required: true
+	//	- name: user
+	//	  in: query
+	//	  description: name of user to link
+	//	  type: string
+	//	  required: true
+	// responses:
+	//   '200':
+	//     description: user and party linked
+	//     schema:
+	//       "$ref": "#/definitions/generalResponse"
+	//   '400':
+	//     description: bad request
+	//     schema:
+	//       "$ref": "#/definitions/generalResponse"
+	//   '500':
+	//     description: server error
+	//     schema:
+
+	params := mux.Vars(request)
+
+	db, err := sql.Open("mysql", "root:secret@tcp(0.0.0.0:3306)/voting")
+	if err != nil {
+		responses.GeneralSystemFailure(writer, "Cannot connect to db")
+		log.Error(err)
+		return
+	}
+
+	defer db.Close()
+
+	queryString := "SELECT party_id " +
+		"FROM Party " +
+		"WHERE party=?"
+
+	var partyID int
+	err = db.QueryRow(queryString, params["party"]).Scan(&partyID)
+	if err != nil {
+		responses.GeneralSystemFailure(writer, "Query Failed")
+		log.Error(err)
+		return
+	}
+
+	queryString = "SELECT user_id " +
+		"FROM Users " +
+		"WHERE username=?"
+
+	var userID int
+	err = db.QueryRow(queryString, params["user"]).Scan(&userID)
+	if err != nil {
+		responses.GeneralSystemFailure(writer, "Query Failed")
+		log.Error(err)
+		return
+	}
+
+	queryString = "Update Users " +
+		"SET party_id=? " +
+		"WHERE user_id=?"
+
+	_, err = db.Exec(queryString, partyID, userID)
+	if err != nil {
+		responses.GeneralSystemFailure(writer, "Query Failed")
+		log.Error(err)
+		return
+	}
+
+	if err != nil {
+		responses.GeneralSystemFailure(writer, "Query Failed")
+		log.Error(err)
+		return
+	}
+
+	responses.GeneralSuccess(writer, "Success")
 }
 
 func UpdateUserParty(writer http.ResponseWriter, request *http.Request) {
