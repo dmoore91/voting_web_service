@@ -9,17 +9,19 @@ import (
 	"voting_web_service/internal/app/responses"
 )
 
+// swagger:model party
 type party struct {
 	Id    int    `json:"id"`
 	Party string `json:"party"`
 }
 
+// swagger:model partyList
 type partyList struct {
 	Parties []party `json:"parties"`
 }
 
 func CreateParty(writer http.ResponseWriter, request *http.Request) {
-	// POST /party
+	// POST /party/{party}
 	//
 	// Endpoint to add party to database
 	//
@@ -27,15 +29,14 @@ func CreateParty(writer http.ResponseWriter, request *http.Request) {
 	// produces:
 	// - application/json
 	//  parameters:
-	//	- name: user
-	//	  in: body
-	//	  description: new user info
-	//	  schema:
-	//	    "$ref": "#/definitions/newUserInfo"
+	//	- name: party
+	//	  in: query
+	//	  description: name of party to add
+	//	  type: string
 	//	  required: true
 	// responses:
 	//   '200':
-	//     description: user added
+	//     description: party added
 	//     schema:
 	//       "$ref": "#/definitions/generalResponse"
 	//   '400':
@@ -85,6 +86,25 @@ func CreateParty(writer http.ResponseWriter, request *http.Request) {
 }
 
 func GetParties(writer http.ResponseWriter, request *http.Request) {
+	// GET /party
+	//
+	// Endpoint to get all parties in database
+	//
+	// ---
+	// produces:
+	// - application/json
+	// responses:
+	//   '200':
+	//     description: parties
+	//     schema:
+	//       "$ref": "#/definitions/partyList"
+	//   '400':
+	//     description: bad request
+	//     schema:
+	//       "$ref": "#/definitions/generalResponse"
+	//   '500':
+	//     description: server error
+	//     schema:
 
 	db, err := sql.Open("mysql", "root:secret@tcp(0.0.0.0:3306)/voting")
 	if err != nil {
