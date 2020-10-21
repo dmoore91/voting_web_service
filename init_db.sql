@@ -34,13 +34,8 @@ CREATE TABLE IF NOT EXISTS Party(
 CREATE TABLE IF NOT EXISTS Candidate(
     candidate_id SERIAL NOT NULL ,
     user_id INTEGER NOT NULL ,
-    party_id INTEGER NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS Votes(
-    candidate_id INTEGER NOT NULL ,
+    party_id INTEGER NOT NULL ,
     votes INTEGER DEFAULT 0
 );
-
 
 COMMIT ;
