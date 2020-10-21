@@ -2,11 +2,24 @@ package candidate
 
 import (
 	"database/sql"
+	"encoding/json"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"voting_web_service/internal/app/responses"
 )
+
+// swagger:model candidate
+type candidate struct {
+	CandidateID int `json:"candidate_id"`
+	UserId      int `json:"user_id"`
+	PartyId     int `json:"party_id"`
+}
+
+// swagger:model candidateList
+type candidateList struct {
+	Candidates []candidate `json:"candidates"`
+}
 
 func CreateCandidate(writer http.ResponseWriter, request *http.Request) {
 	// POST /candidate/{user}/{party}
@@ -89,23 +102,16 @@ func CreateCandidate(writer http.ResponseWriter, request *http.Request) {
 }
 
 func GetCandidates(writer http.ResponseWriter, request *http.Request) {
-	// POST /user/login
+	// GET /candidate
 	//
 	// Endpoint
 	//
 	// ---
 	// produces:
 	// - application/json
-	//  parameters:
-	//	 - name: login_info
-	//	   in: body
-	//	   description: username and password to login
-	//	   schema:
-	//	     "$ref": "#/definitions/loginCreds"
-	//	   required: true
 	// responses:
 	//   '200':
-	//     description: if user exists
+	//     description: List of candidates
 	//     schema:
 	//       "$ref": "#/definitions/generalResponse"
 	//   '204':
@@ -121,7 +127,47 @@ func GetCandidates(writer http.ResponseWriter, request *http.Request) {
 	//     schema:
 	//       "$ref": "#/definitions/generalResponse"
 
-	responses.GeneralNotImplemented(writer)
+	db, err := sql.Open("mysql", "root:secret@tcp(0.0.0.0:3306)/voting")
+	if err != nil {
+		responses.GeneralSystemFailure(writer, "Cannot connect to db")
+		log.Error(err)
+		return
+	}
+
+	defer db.Close()
+
+	queryString := "SELECT candidate_id, user_id, party_id " +
+		"FROM Candidate"
+
+	rows, err := db.Query(queryString)
+	if err != nil {
+		responses.GeneralSystemFailure(writer, "Failed query")
+		log.Error(err)
+		return
+	}
+
+	var candidates []candidate
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var c = candidate{}
+		err = rows.Scan(&c.CandidateID, &c.UserId, &c.PartyId)
+
+		if err != nil {
+			responses.GeneralSystemFailure(writer, "Get Failed")
+			log.Error(err)
+			return
+		}
+
+		candidates = append(candidates, c)
+	}
+
+	resp := candidateList{Candidates: candidates}
+
+	writer.Header().Set("Content-Type", "application/json")
+	writer.WriteHeader(200)
+	_ = json.NewEncoder(writer).Encode(resp)
 }
 
 func GetCandidate(writer http.ResponseWriter, request *http.Request) {
