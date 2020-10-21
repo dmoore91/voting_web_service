@@ -114,10 +114,6 @@ func GetCandidates(writer http.ResponseWriter, request *http.Request) {
 	//     description: List of candidates
 	//     schema:
 	//       "$ref": "#/definitions/generalResponse"
-	//   '204':
-	//     description: if user doesn't exists
-	//     schema:
-	//       "$ref": "#/definitions/generalResponse"
 	//   '400':
 	//     description: bad request
 	//     schema:
@@ -171,27 +167,22 @@ func GetCandidates(writer http.ResponseWriter, request *http.Request) {
 }
 
 func GetCandidate(writer http.ResponseWriter, request *http.Request) {
-	// POST /user/login
+	// GET /candidate/{candidate_id}
 	//
-	// Endpoint
+	// Endpoint to get specific candidate
 	//
 	// ---
 	// produces:
 	// - application/json
 	//  parameters:
-	//	 - name: login_info
-	//	   in: body
-	//	   description: username and password to login
-	//	   schema:
-	//	     "$ref": "#/definitions/loginCreds"
-	//	   required: true
+	//	- name: candidate_id
+	//	  in: query
+	//	  description: id for candidate
+	//	  type: string
+	//	  required: true
 	// responses:
 	//   '200':
-	//     description: if user exists
-	//     schema:
-	//       "$ref": "#/definitions/generalResponse"
-	//   '204':
-	//     description: if user doesn't exists
+	//     description: candidate
 	//     schema:
 	//       "$ref": "#/definitions/generalResponse"
 	//   '400':
@@ -203,5 +194,31 @@ func GetCandidate(writer http.ResponseWriter, request *http.Request) {
 	//     schema:
 	//       "$ref": "#/definitions/generalResponse"
 
-	responses.GeneralNotImplemented(writer)
+	params := mux.Vars(request)
+
+	db, err := sql.Open("mysql", "root:secret@tcp(0.0.0.0:3306)/voting")
+	if err != nil {
+		responses.GeneralSystemFailure(writer, "Cannot connect to db")
+		log.Error(err)
+		return
+	}
+
+	defer db.Close()
+
+	queryString := "SELECT candidate_id, user_id, party_id " +
+		"FROM Candidate " +
+		"WHERE candidate_id=?"
+
+	var c candidate
+
+	err = db.QueryRow(queryString, params["candidate_id"]).Scan(&c.CandidateID, &c.UserId, &c.PartyId)
+	if err != nil {
+		responses.GeneralSystemFailure(writer, "Failed query")
+		log.Error(err)
+		return
+	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	writer.WriteHeader(200)
+	_ = json.NewEncoder(writer).Encode(c)
 }
