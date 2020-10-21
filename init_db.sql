@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS Party(
 );
 
 CREATE TABLE IF NOT EXISTS Candidate(
-    candidiate_id SERIAL NOT NULL ,
+    candidate_id SERIAL NOT NULL ,
     user_id INTEGER NOT NULL ,
     party_id INTEGER NOT NULL
 );
