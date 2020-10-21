@@ -14,8 +14,19 @@ type VotesStruct struct {
 	Votes int `json:"votes"`
 }
 
+// swagger:model votesForCandidates
+type VotesForCandidate struct {
+	CandidateId int `json:"candidates"`
+	Votes       int `json:"votes"`
+}
+
+// swagger:model votesForCandidatesList
+type VotesForCandidateList struct {
+	Candidates []VotesForCandidate `json:"candidates"`
+}
+
 func VoteForCandidate(writer http.ResponseWriter, request *http.Request) {
-	// POST /voting/{candidate_id}
+	// POST /vote/{candidate_id}
 	//
 	// Endpoint to vote for candidate
 	//
@@ -67,9 +78,9 @@ func VoteForCandidate(writer http.ResponseWriter, request *http.Request) {
 }
 
 func GetVotesForCandidate(writer http.ResponseWriter, request *http.Request) {
-	// GET /voting/candidate/{candidate_id}
+	// GET /vote/candidate/{candidate_id}
 	//
-	// Endpoint to vote for candidate
+	// Endpoint to get votes for candidate
 	//
 	// ---
 	// produces:
@@ -124,24 +135,18 @@ func GetVotesForCandidate(writer http.ResponseWriter, request *http.Request) {
 }
 
 func GetVotesForCandidates(writer http.ResponseWriter, request *http.Request) {
-	// POST /voting/{candidate_id}
+	// POST /vote
 	//
-	// Endpoint to vote for candidate
+	// Endpoint to vote for all candidates
 	//
 	// ---
 	// produces:
 	// - application/json
-	//  parameters:
-	//	- name: candidate_id
-	//	  in: query
-	//	  description: id for candidate that's being voted for
-	//	  type: string
-	//	  required: true
 	// responses:
 	//   '200':
-	//     description: Vote counted for candidate
+	//     description: Got votes for candidates
 	//     schema:
-	//       "$ref": "#/definitions/generalResponse"
+	//       "$ref": "#/definitions/votesForCandidatesList"
 	//   '400':
 	//     description: bad request
 	//     schema:
@@ -150,7 +155,6 @@ func GetVotesForCandidates(writer http.ResponseWriter, request *http.Request) {
 	//     description: server error
 	//     schema:
 	//       "$ref": "#/definitions/generalResponse"
-	params := mux.Vars(request)
 
 	db, err := sql.Open("mysql", "root:secret@tcp(0.0.0.0:3306)/voting")
 	if err != nil {
@@ -161,16 +165,36 @@ func GetVotesForCandidates(writer http.ResponseWriter, request *http.Request) {
 
 	defer db.Close()
 
-	queryString := "UPDATE Votes " +
-		"SET votes = votes + 1 " +
-		"WHERE candidate_id=?"
+	queryString := "SELECT candidate_id, votes " +
+		"FROM Candidate "
 
-	_, err = db.Exec(queryString, params["candidate_id"])
+	rows, err := db.Query(queryString)
 	if err != nil {
-		responses.GeneralSystemFailure(writer, "Query Failed")
+		responses.GeneralSystemFailure(writer, "Failed query")
 		log.Error(err)
 		return
 	}
 
-	responses.GeneralSuccess(writer, "Success")
+	var candidates []VotesForCandidate
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var c = VotesForCandidate{}
+		err = rows.Scan(&c.CandidateId, &c.Votes)
+
+		if err != nil {
+			responses.GeneralSystemFailure(writer, "Get Failed")
+			log.Error(err)
+			return
+		}
+
+		candidates = append(candidates, c)
+	}
+
+	resp := VotesForCandidateList{Candidates: candidates}
+
+	writer.Header().Set("Content-Type", "application/json")
+	writer.WriteHeader(200)
+	_ = json.NewEncoder(writer).Encode(resp)
 }
