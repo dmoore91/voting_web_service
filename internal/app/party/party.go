@@ -226,15 +226,5 @@ func LinkUserAndParty(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	if err != nil {
-		responses.GeneralSystemFailure(writer, "Query Failed")
-		log.Error(err)
-		return
-	}
-
 	responses.GeneralSuccess(writer, "Success")
-}
-
-func UpdateUserParty(writer http.ResponseWriter, request *http.Request) {
-	responses.GeneralNotImplemented(writer)
 }
