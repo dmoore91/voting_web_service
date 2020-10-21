@@ -9,6 +9,8 @@ import (
 	"voting_web_service/internal/app/responses"
 )
 
+//TODO Add hashed password
+
 type User struct {
 	UserId    int    `json:"user_id"`
 	Username  string `json:"username"`

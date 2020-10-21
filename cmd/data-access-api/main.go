@@ -41,6 +41,8 @@ func main() {
 
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./static/")))
 
+	//TODO Add HTTPS
+
 	server := &http.Server{
 		Addr:           ":8880",
 		Handler:        router,
