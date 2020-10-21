@@ -2,11 +2,21 @@ package party
 
 import (
 	"database/sql"
+	"encoding/json"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"voting_web_service/internal/app/responses"
 )
+
+type party struct {
+	Id    int    `json:"id"`
+	Party string `json:"party"`
+}
+
+type partyList struct {
+	Parties []party `json:"parties"`
+}
 
 func CreateParty(writer http.ResponseWriter, request *http.Request) {
 	// POST /party
@@ -75,7 +85,48 @@ func CreateParty(writer http.ResponseWriter, request *http.Request) {
 }
 
 func GetParties(writer http.ResponseWriter, request *http.Request) {
-	responses.GeneralNotImplemented(writer)
+
+	db, err := sql.Open("mysql", "root:secret@tcp(0.0.0.0:3306)/voting")
+	if err != nil {
+		responses.GeneralSystemFailure(writer, "Cannot connect to db")
+		log.Error(err)
+		return
+	}
+
+	defer db.Close()
+
+	queryString := "SELECT party_id, party " +
+		"FROM Party"
+
+	rows, err := db.Query(queryString)
+	if err != nil {
+		responses.GeneralSystemFailure(writer, "Failed query")
+		log.Error(err)
+		return
+	}
+
+	var parties []party
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var p = party{}
+		err = rows.Scan(&p.Id, &p.Party)
+
+		if err != nil {
+			responses.GeneralSystemFailure(writer, "Get Failed")
+			log.Error(err)
+			return
+		}
+
+		parties = append(parties, p)
+	}
+
+	resp := partyList{Parties: parties}
+
+	writer.Header().Set("Content-Type", "application/json")
+	writer.WriteHeader(200)
+	_ = json.NewEncoder(writer).Encode(resp)
 }
 
 func LinkUserAndParty(writer http.ResponseWriter, request *http.Request) {
