@@ -5,11 +5,10 @@ import (
 	"encoding/json"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"voting_web_service/internal/app/responses"
 )
-
-//TODO Add hashed password
 
 type User struct {
 	UserId    int    `json:"user_id"`
@@ -22,12 +21,12 @@ type User struct {
 
 // swagger:model newUserInfo
 type InputUser struct {
-	Username       string `json:"username"`
-	HashedPassword string `json:"password"`
-	Email          string `json:"email"`
-	FirstName      string `json:"first_name"`
-	LastName       string `json:"last_name"`
-	Party          string `json:"party"`
+	Username  string `json:"username"`
+	Password  string `json:"password"`
+	Email     string `json:"email"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Party     string `json:"party"`
 }
 
 // swagger:model updateUserInfo
@@ -50,6 +49,32 @@ type Permission struct {
 
 type PermissionsStruct struct {
 	Permissions []Permission `json:"permissions"`
+}
+
+func hashAndSalt(pwd []byte) string {
+
+	// Use GenerateFromPassword to hash & salt pwd.
+	// MinCost is just an integer constant provided by the bcrypt
+	// package along with DefaultCost & MaxCost.
+	// The cost can be any value you want provided it isn't lower
+	// than the MinCost (4)
+	hash, err := bcrypt.GenerateFromPassword(pwd, bcrypt.MinCost)
+	if err != nil {
+		log.Println(err)
+	}
+	// GenerateFromPassword returns a byte slice so we need to
+	// convert the bytes to a string and return it
+	return string(hash)
+}
+
+func isCorrectPassword(writer http.ResponseWriter, byteHash []byte, pwd []byte) bool {
+
+	err := bcrypt.CompareHashAndPassword(byteHash, pwd)
+	if err != nil {
+		responses.GeneralNoContent(writer, "User does not exist")
+		return false
+	}
+	return true
 }
 
 func LoginUser(writer http.ResponseWriter, request *http.Request) {
@@ -103,22 +128,19 @@ func LoginUser(writer http.ResponseWriter, request *http.Request) {
 
 	defer db.Close()
 
-	queryString := "SELECT TRUE " +
+	queryString := "SELECT hashed_password " +
 		"FROM Users " +
-		"WHERE username=? AND hashed_password=?"
+		"WHERE username=?"
 
-	var exists bool
-	err = db.QueryRow(queryString, lc.Username, lc.Password).Scan(&exists)
+	var hashedPass string
+	err = db.QueryRow(queryString, lc.Username).Scan(&hashedPass)
 	if err != nil {
-		if err.Error() != "no rows in result set" {
-			responses.GeneralNoContent(writer, "User does not exist")
-			return
-		} else {
-			responses.GeneralSystemFailure(writer, "Failed query")
-			log.Error(err)
-			return
-		}
+		responses.GeneralSystemFailure(writer, "Failed query")
+		log.Error(err)
+		return
 	}
+
+	exists := isCorrectPassword(writer, []byte(hashedPass), []byte(lc.Password))
 
 	if exists {
 		responses.GeneralSuccess(writer, "User Exists")
@@ -317,7 +339,7 @@ func AddUser(writer http.ResponseWriter, request *http.Request) {
 		"VALUES(?, ?, ?, ?, ?, ?)"
 
 	//TODO Need to change this to not be hardcoded
-	r, err := db.Exec(queryString, u.Username, u.HashedPassword, u.Email, u.FirstName, u.LastName, 1)
+	r, err := db.Exec(queryString, u.Username, hashAndSalt([]byte(u.Password)), u.Email, u.FirstName, u.LastName, 1)
 	if err != nil {
 		responses.GeneralSystemFailure(writer, "Query Failed")
 		log.Error(err)
