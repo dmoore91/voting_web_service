@@ -23,11 +23,9 @@ function signin() {
         type: 'POST',
         data: JSON.stringify(formData),
         dataType: "text",
-        url: "http://localhost:8880/voting/login",
-        statusCode: {
-            200: function(responseObject, textStatus, jqXHR) {
-                window.location.href = './dashboard.html';
-            }
+        url: "http://localhost:8880/voting/user/login",
+        success:  function() {
+            window.location.href = './dashboard.html';
         }
     });
 }
@@ -44,10 +42,8 @@ function signup() {
         data: JSON.stringify(formData),
         dataType: "text",
         url: "http://localhost:8880/voting/user",
-        statusCode: {
-            200: function(responseObject, textStatus, jqXHR) {
-                window.location.href = './dashboard.html';
-            }
+        success:  function() {
+            window.location.href = './dashboard.html';
         }
     });
 }
