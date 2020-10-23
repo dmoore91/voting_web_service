@@ -77,6 +77,32 @@ func isCorrectPassword(writer http.ResponseWriter, byteHash []byte, pwd []byte) 
 	return true
 }
 
+func getPartyIdForParty(writer http.ResponseWriter, party string) int {
+
+	db, err := sql.Open("mysql", "root:secret@tcp(0.0.0.0:3306)/voting")
+	if err != nil {
+		responses.GeneralSystemFailure(writer, "Cannot connect to db")
+		log.Error(err)
+		return -1
+	}
+
+	defer db.Close()
+
+	queryString := "SELECT party_id " +
+		"FROM Party " +
+		"WHERE party=?"
+
+	var partyID int
+	err = db.QueryRow(queryString, party).Scan(&partyID)
+	if err != nil {
+		responses.GeneralSystemFailure(writer, "Failed query")
+		log.Error(err)
+		return -1
+	}
+
+	return partyID
+}
+
 func LoginUser(writer http.ResponseWriter, request *http.Request) {
 	// POST /user/login
 	//
@@ -264,28 +290,33 @@ func UpdateUser(writer http.ResponseWriter, request *http.Request) {
 		"SET email=?, first_name=?, last_name=?, party_id=? " +
 		"WHERE username=?"
 
-	//TODO Need to change this to not be hardcoded
-	r, err := db.Exec(queryString, u.Email, u.FirstName, u.LastName, 1, params["username"])
-	if err != nil {
-		responses.GeneralSystemFailure(writer, "Query Failed")
-		log.Error(err)
-		return
+	partyID := getPartyIdForParty(writer, u.Party)
+
+	//If it's failed we've already returned an error message so all we need to do is exit this function
+	if partyID != -1 {
+
+		r, err := db.Exec(queryString, u.Email, u.FirstName, u.LastName, 1, params["username"])
+		if err != nil {
+			responses.GeneralSystemFailure(writer, "Query Failed")
+			log.Error(err)
+			return
+		}
+
+		rowsAffected, err := r.RowsAffected()
+
+		if err != nil {
+			responses.GeneralSystemFailure(writer, "Query Failed")
+			log.Error(err)
+			return
+		}
+
+		if rowsAffected == 0 {
+			responses.GeneralSystemFailure(writer, "Query Failed")
+			return
+		}
+
+		responses.GeneralSuccess(writer, "Success")
 	}
-
-	rowsAffected, err := r.RowsAffected()
-
-	if err != nil {
-		responses.GeneralSystemFailure(writer, "Query Failed")
-		log.Error(err)
-		return
-	}
-
-	if rowsAffected == 0 {
-		responses.GeneralSystemFailure(writer, "Query Failed")
-		return
-	}
-
-	responses.GeneralSuccess(writer, "Success")
 }
 
 func AddUser(writer http.ResponseWriter, request *http.Request) {
@@ -338,28 +369,32 @@ func AddUser(writer http.ResponseWriter, request *http.Request) {
 	queryString := "INSERT INTO Users(username, hashed_password, email, first_name, last_name, party_id)  " +
 		"VALUES(?, ?, ?, ?, ?, ?)"
 
-	//TODO Need to change this to not be hardcoded
-	r, err := db.Exec(queryString, u.Username, hashAndSalt([]byte(u.Password)), u.Email, u.FirstName, u.LastName, 1)
-	if err != nil {
-		responses.GeneralSystemFailure(writer, "Query Failed")
-		log.Error(err)
-		return
+	partyID := getPartyIdForParty(writer, u.Party)
+
+	//If it's failed we've already returned an error message so all we need to do is exit this function
+	if partyID != -1 {
+		r, err := db.Exec(queryString, u.Username, hashAndSalt([]byte(u.Password)), u.Email, u.FirstName, u.LastName, 1)
+		if err != nil {
+			responses.GeneralSystemFailure(writer, "Query Failed")
+			log.Error(err)
+			return
+		}
+
+		rowsAffected, err := r.RowsAffected()
+
+		if err != nil {
+			responses.GeneralSystemFailure(writer, "Query Failed")
+			log.Error(err)
+			return
+		}
+
+		if rowsAffected == 0 {
+			responses.GeneralSystemFailure(writer, "Query Failed")
+			return
+		}
+
+		responses.GeneralSuccess(writer, "Success")
 	}
-
-	rowsAffected, err := r.RowsAffected()
-
-	if err != nil {
-		responses.GeneralSystemFailure(writer, "Query Failed")
-		log.Error(err)
-		return
-	}
-
-	if rowsAffected == 0 {
-		responses.GeneralSystemFailure(writer, "Query Failed")
-		return
-	}
-
-	responses.GeneralSuccess(writer, "Success")
 }
 
 func GetPermissionsForUser(writer http.ResponseWriter, request *http.Request) {
