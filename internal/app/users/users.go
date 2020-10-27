@@ -295,7 +295,7 @@ func UpdateUser(writer http.ResponseWriter, request *http.Request) {
 	//If it's failed we've already returned an error message so all we need to do is exit this function
 	if partyID != -1 {
 
-		r, err := db.Exec(queryString, u.Email, u.FirstName, u.LastName, 1, params["username"])
+		r, err := db.Exec(queryString, u.Email, u.FirstName, u.LastName, partyID, params["username"])
 		if err != nil {
 			responses.GeneralSystemFailure(writer, "Query Failed")
 			log.Error(err)
@@ -373,7 +373,7 @@ func AddUser(writer http.ResponseWriter, request *http.Request) {
 
 	//If it's failed we've already returned an error message so all we need to do is exit this function
 	if partyID != -1 {
-		r, err := db.Exec(queryString, u.Username, hashAndSalt([]byte(u.Password)), u.Email, u.FirstName, u.LastName, 1)
+		r, err := db.Exec(queryString, u.Username, hashAndSalt([]byte(u.Password)), u.Email, u.FirstName, u.LastName, partyID)
 		if err != nil {
 			responses.GeneralSystemFailure(writer, "Query Failed")
 			log.Error(err)
