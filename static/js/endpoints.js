@@ -23,7 +23,7 @@ function signin() {
         type: 'POST',
         data: JSON.stringify(formData),
         dataType: "text",
-        url: "http://localhost:8880/voting/user/login",
+        url: "https://localhost:8880/voting/user/login",
         success:  function() {
             window.location.href = './dashboard.html';
         }
@@ -41,7 +41,7 @@ function signup() {
         type: 'POST',
         data: JSON.stringify(formData),
         dataType: "text",
-        url: "http://localhost:8880/voting/user",
+        url: "https://localhost:8880/voting/user",
         success:  function() {
             window.location.href = './dashboard.html';
         }
