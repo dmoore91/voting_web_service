@@ -1,14 +1,55 @@
-database:
-    image: mysql:latest
-    ports:
-        - "3306:3306"
-    command: --init-file /data/application/init.sql
-    volumes:
-        - ./init_db.sql:/data/application/init.sql
-    environment:
-        MYSQL_ROOT_PASSWORD: secret
-        MYSQL_DATABASE: voting
-        MYSQL_USER: bob
-        MYSQL_PASSWORD: secret
-    container_name: mysql_db
-    tty: true
+version: '3'
+services:
+    database:
+        image: mysql_db
+        build:
+            context: .
+            dockerfile: ./docker_files/Dockerfile-mysql
+        ports:
+            - "3306:3306"
+        command: --init-file /data/application/init.sql
+        volumes:
+            - ./init_db.sql:/data/application/init.sql
+        environment:
+            MYSQL_ROOT_PASSWORD: secret
+            MYSQL_DATABASE: voting
+            MYSQL_USER: bob
+            MYSQL_PASSWORD: secret
+        container_name: mysql_db
+        tty: true
+        network_mode: "host"
+        #networks:
+        #    - hostnet
+    server:
+        #image: voting_web_service_app:latest
+        build:
+            context: .
+            dockerfile: ./docker_files/Dockerfile
+        image: go_server
+        container_name: go_server
+        #ports:
+        #    - "8880:8880"
+        tty: true
+        #networks:
+        #    - voting-network
+        network_mode: "host"
+        #networks:
+        #    - hostnet
+    webserver:
+        image: nginx:mainline-alpine
+        container_name: webserver
+        hostname: webserver
+        ports:
+            - "80:80"
+            - "443:443"
+        volumes:
+            - ./nginx-conf:/etc/nginx/conf.d
+            - ./certs:/etc/ssl/private
+        depends_on:
+            - server
+        network_mode: "host"
+        #networks:
+        #    - hostnet
+networks:
+    backend:
+        driver: bridge
