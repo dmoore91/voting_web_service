@@ -12,14 +12,15 @@ services:
         command: --init-file /data/application/init.sql
         volumes:
             - ./init_db.sql:/data/application/init.sql
-            - ./mysql_data/:/var/lib/mysql
+#            - ./mysql_data/:/var/lib/mysql
         environment:
             MYSQL_ROOT_PASSWORD: secret
             MYSQL_DATABASE: voting
             MYSQL_USER: bob
             MYSQL_PASSWORD: secret
         tty: true
-        network_mode: "host"
+        networks:
+            - backend
 
     server:
         build:
@@ -27,12 +28,13 @@ services:
             dockerfile: ./docker_files/Dockerfile
         image: go_server
         container_name: go_server
-        #ports:
-        #    - "8880:8880"
+        ports:
+            - "8880:8880"
         tty: true
         depends_on:
             - database
-        network_mode: "host"
+        networks:
+            - backend
 
     webserver:
         image: nginx:mainline-alpine
@@ -48,7 +50,9 @@ services:
         depends_on:
             - server
             - database
-        network_mode: "host"
+        networks:
+            - backend
+#        network_mode: "host"
 
 networks:
     backend:

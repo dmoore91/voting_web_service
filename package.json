@@ -1,0 +1,24 @@
+{
+  "name": "voting_web_service",
+  "version": "1.0.0",
+  "description": "* We use docker to spin up the HTTP webserver and a MySQL database * Golang microservice is a REST API which we use to facilitate communication between our backend and frontend * Frontend is written in Vanilla JS",
+  "main": "index.js",
+  "dependencies": {
+    "qrcode": "^1.4.4",
+    "speakeasy": "^2.0.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dmoore91/voting_web_service.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dmoore91/voting_web_service/issues"
+  },
+  "homepage": "https://github.com/dmoore91/voting_web_service#readme"
+}

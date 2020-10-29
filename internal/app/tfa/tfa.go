@@ -40,3 +40,11 @@ func GetTfa(writer http.ResponseWriter, request *http.Request) {
 	writer.WriteHeader(200)
 	_ = json.NewEncoder(writer).Encode(t)
 }
+
+func Validate(writer http.ResponseWriter, request *http.Request) {
+	// get the secret from the User table
+	// get the user 2FA input
+	// pass the two into the bash script
+	//
+	out, err := exec.Command("/bin/bash", "internal/app/tfa/validate.sh ").Output()
+}
