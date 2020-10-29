@@ -8,6 +8,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"voting_web_service/internal/app/responses"
+	"voting_web_service/internal/app/session"
 )
 
 type User struct {
@@ -40,8 +41,9 @@ type UpdateUserStruct struct {
 
 // swagger:model loginCreds
 type LoginCreds struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Username     string              `json:"username"`
+	Password     string              `json:"password"`
+	SessionCreds session.SessionInfo `json:"session"`
 }
 
 type Permission struct {
@@ -150,37 +152,44 @@ func LoginUser(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	db, err := sql.Open("mysql", "root:secret@tcp(0.0.0.0:3306)/voting")
-	if err != nil {
-		responses.GeneralSystemFailure(writer, "Cannot connect to db")
-		log.Error(err)
-		return
-	}
+	valid := session.CheckSessionID(lc.SessionCreds.Username, lc.SessionCreds.SessionID)
 
-	defer db.Close()
+	if valid {
 
-	queryString := "SELECT hashed_password, secret_key " +
-		"FROM Users " +
-		"WHERE username=?"
+		db, err := sql.Open("mysql", "root:secret@tcp(0.0.0.0:3306)/voting")
+		if err != nil {
+			responses.GeneralSystemFailure(writer, "Cannot connect to db")
+			log.Error(err)
+			return
+		}
 
-	var hashedPass string
-	var secretKey string
+		defer db.Close()
 
-	err = db.QueryRow(queryString, lc.Username).Scan(&hashedPass, &secretKey)
-	if err != nil {
-		responses.GeneralSystemFailure(writer, "Failed query")
-		log.Error(err)
-		return
-	}
+		queryString := "SELECT hashed_password, secret_key " +
+			"FROM Users " +
+			"WHERE username=?"
 
-	isCorrect := isCorrectPassword(writer, []byte(hashedPass), []byte(lc.Password))
+		var hashedPass string
+		var secretKey string
 
-	if isCorrect {
-		writer.Header().Set("Content-Type", "application/json")
-		writer.WriteHeader(200)
-		_ = json.NewEncoder(writer).Encode(SecretKeyStruct{SecretKey: secretKey})
+		err = db.QueryRow(queryString, lc.Username).Scan(&hashedPass, &secretKey)
+		if err != nil {
+			responses.GeneralSystemFailure(writer, "Failed query")
+			log.Error(err)
+			return
+		}
+
+		isCorrect := isCorrectPassword(writer, []byte(hashedPass), []byte(lc.Password))
+
+		if isCorrect {
+			writer.Header().Set("Content-Type", "application/json")
+			writer.WriteHeader(200)
+			_ = json.NewEncoder(writer).Encode(SecretKeyStruct{SecretKey: secretKey})
+		} else {
+			responses.GeneralNoContent(writer, "User does not exist")
+		}
 	} else {
-		responses.GeneralNoContent(writer, "User does not exist")
+		responses.GeneralBadRequest(writer, "Bad Session Token")
 	}
 }
 

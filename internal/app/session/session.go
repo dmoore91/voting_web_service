@@ -8,14 +8,14 @@ import (
 	"voting_web_service/internal/app/responses"
 )
 
-type sessionInfo struct {
+type SessionInfo struct {
 	SessionID string `json:"session_id"`
 	Username  string `json:"username"`
 }
 
 // This function will be used by every other function to make sure that the user has the correct session_id.
 // This takes care of the authentication step in auth/auth
-func checkSessionID(username string, sessionId string) bool {
+func CheckSessionID(username string, sessionId string) bool {
 
 	db, err := sql.Open("mysql", "root:secret@tcp(0.0.0.0:3306)/voting")
 	if err != nil {
