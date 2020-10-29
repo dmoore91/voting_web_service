@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS Users(
     last_name VARCHAR(100) NOT NULL,
     party_id INTEGER ,
     session TEXT ,
+    secret_key TEXT ,
     PRIMARY KEY(user_id),
     CONSTRAINT unique_username_user UNIQUE (username)
 );

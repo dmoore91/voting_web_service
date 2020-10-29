@@ -27,6 +27,7 @@ type InputUser struct {
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
 	Party     string `json:"party"`
+	SecretKey string `json:"secret_key"`
 }
 
 // swagger:model updateUserInfo
@@ -49,6 +50,10 @@ type Permission struct {
 
 type PermissionsStruct struct {
 	Permissions []Permission `json:"permissions"`
+}
+
+type SecretKeyStruct struct {
+	SecretKey string `json:"secret_key"`
 }
 
 func hashAndSalt(pwd []byte) string {
@@ -154,22 +159,26 @@ func LoginUser(writer http.ResponseWriter, request *http.Request) {
 
 	defer db.Close()
 
-	queryString := "SELECT hashed_password " +
+	queryString := "SELECT hashed_password, secret_key " +
 		"FROM Users " +
 		"WHERE username=?"
 
 	var hashedPass string
-	err = db.QueryRow(queryString, lc.Username).Scan(&hashedPass)
+	var secretKey string
+
+	err = db.QueryRow(queryString, lc.Username).Scan(&hashedPass, &secretKey)
 	if err != nil {
 		responses.GeneralSystemFailure(writer, "Failed query")
 		log.Error(err)
 		return
 	}
 
-	exists := isCorrectPassword(writer, []byte(hashedPass), []byte(lc.Password))
+	isCorrect := isCorrectPassword(writer, []byte(hashedPass), []byte(lc.Password))
 
-	if exists {
-		responses.GeneralSuccess(writer, "User Exists")
+	if isCorrect {
+		writer.Header().Set("Content-Type", "application/json")
+		writer.WriteHeader(200)
+		_ = json.NewEncoder(writer).Encode(SecretKeyStruct{SecretKey: secretKey})
 	} else {
 		responses.GeneralNoContent(writer, "User does not exist")
 	}
@@ -366,14 +375,15 @@ func AddUser(writer http.ResponseWriter, request *http.Request) {
 
 	defer db.Close()
 
-	queryString := "INSERT INTO Users(username, hashed_password, email, first_name, last_name, party_id)  " +
-		"VALUES(?, ?, ?, ?, ?, ?)"
+	queryString := "INSERT INTO Users(username, hashed_password, email, first_name, last_name, party_id, secret_key)  " +
+		"VALUES(?, ?, ?, ?, ?, ?, ?)"
 
 	partyID := getPartyIdForParty(writer, u.Party)
 
 	//If it's failed we've already returned an error message so all we need to do is exit this function
 	if partyID != -1 {
-		r, err := db.Exec(queryString, u.Username, hashAndSalt([]byte(u.Password)), u.Email, u.FirstName, u.LastName, partyID)
+		r, err := db.Exec(queryString, u.Username, hashAndSalt([]byte(u.Password)), u.Email, u.FirstName,
+			u.LastName, partyID, u.SecretKey)
 		if err != nil {
 			responses.GeneralSystemFailure(writer, "Query Failed")
 			log.Error(err)
