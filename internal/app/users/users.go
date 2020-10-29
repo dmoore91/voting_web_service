@@ -27,6 +27,7 @@ type InputUser struct {
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
 	Party     string `json:"party"`
+	SecretKey string `json:"secret_key"`
 }
 
 // swagger:model updateUserInfo
@@ -366,14 +367,15 @@ func AddUser(writer http.ResponseWriter, request *http.Request) {
 
 	defer db.Close()
 
-	queryString := "INSERT INTO Users(username, hashed_password, email, first_name, last_name, party_id)  " +
-		"VALUES(?, ?, ?, ?, ?, ?)"
+	queryString := "INSERT INTO Users(username, hashed_password, email, first_name, last_name, party_id, secret_key)  " +
+		"VALUES(?, ?, ?, ?, ?, ?, ?)"
 
 	partyID := getPartyIdForParty(writer, u.Party)
 
 	//If it's failed we've already returned an error message so all we need to do is exit this function
 	if partyID != -1 {
-		r, err := db.Exec(queryString, u.Username, hashAndSalt([]byte(u.Password)), u.Email, u.FirstName, u.LastName, partyID)
+		r, err := db.Exec(queryString, u.Username, hashAndSalt([]byte(u.Password)), u.Email, u.FirstName,
+			u.LastName, partyID, u.SecretKey)
 		if err != nil {
 			responses.GeneralSystemFailure(writer, "Query Failed")
 			log.Error(err)
