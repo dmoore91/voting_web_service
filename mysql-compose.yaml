@@ -12,6 +12,7 @@ services:
         command: --init-file /data/application/init.sql
         volumes:
             - ./init_db.sql:/data/application/init.sql
+            - ./mysql_data/:/var/lib/mysql
         environment:
             MYSQL_ROOT_PASSWORD: secret
             MYSQL_DATABASE: voting
