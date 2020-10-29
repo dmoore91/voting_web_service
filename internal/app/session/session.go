@@ -2,6 +2,7 @@ package session
 
 import (
 	"database/sql"
+	"encoding/json"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 	"net/http"
@@ -52,6 +53,12 @@ func SetSessionIdNull(writer http.ResponseWriter, request *http.Request) {
 	//	  description: name of user that is signing out
 	//	  type: string
 	//	  required: true
+	//	 - name: session_info
+	//	   in: body
+	//	   description: session info
+	//	   schema:
+	//	     "$ref": "#/definitions/sessionInfo"
+	//	   required: true
 	// responses:
 	//   '200':
 	//     description: Session successfully set to null
@@ -65,41 +72,57 @@ func SetSessionIdNull(writer http.ResponseWriter, request *http.Request) {
 	//     description: server error
 	//     schema:
 	//       "$ref": "#/definitions/generalResponse"
-	params := mux.Vars(request)
 
-	db, err := sql.Open("mysql", "root:secret@tcp(0.0.0.0:3306)/voting")
+	decoder := json.NewDecoder(request.Body)
+	var si SessionInfo
+	err := decoder.Decode(&si)
 	if err != nil {
-		responses.GeneralSystemFailure(writer, "Cannot connect to db")
+		responses.GeneralBadRequest(writer, "Decode Failed")
 		log.Error(err)
 		return
 	}
 
-	defer db.Close()
+	valid := CheckSessionID(si.Username, si.SessionID)
 
-	queryString := "UPDATE Users " +
-		"SET session='' " +
-		"WHERE username=?"
+	if valid {
+		params := mux.Vars(request)
 
-	r, err := db.Exec(queryString, params["user"])
+		db, err := sql.Open("mysql", "root:secret@tcp(0.0.0.0:3306)/voting")
+		if err != nil {
+			responses.GeneralSystemFailure(writer, "Cannot connect to db")
+			log.Error(err)
+			return
+		}
 
-	if err != nil {
-		responses.GeneralSystemFailure(writer, "Query Failed")
-		log.Error(err)
-		return
+		defer db.Close()
+
+		queryString := "UPDATE Users " +
+			"SET session='' " +
+			"WHERE username=?"
+
+		r, err := db.Exec(queryString, params["user"])
+
+		if err != nil {
+			responses.GeneralSystemFailure(writer, "Query Failed")
+			log.Error(err)
+			return
+		}
+
+		rowsAffected, err := r.RowsAffected()
+
+		if err != nil {
+			responses.GeneralSystemFailure(writer, "Query Failed")
+			log.Error(err)
+			return
+		}
+
+		if rowsAffected == 0 {
+			responses.GeneralSystemFailure(writer, "Query Failed")
+			return
+		}
+
+		responses.GeneralSuccess(writer, "Success")
+	} else {
+		responses.GeneralBadRequest(writer, "Bad Session Token")
 	}
-
-	rowsAffected, err := r.RowsAffected()
-
-	if err != nil {
-		responses.GeneralSystemFailure(writer, "Query Failed")
-		log.Error(err)
-		return
-	}
-
-	if rowsAffected == 0 {
-		responses.GeneralSystemFailure(writer, "Query Failed")
-		return
-	}
-
-	responses.GeneralSuccess(writer, "Success")
 }
