@@ -33,10 +33,11 @@ type InputUser struct {
 
 // swagger:model updateUserInfo
 type UpdateUserStruct struct {
-	Email     string `json:"email"`
-	FirstName string `json:"first name"`
-	LastName  string `json:"last name"`
-	Party     string `json:"party"`
+	Email        string              `json:"email"`
+	FirstName    string              `json:"first name"`
+	LastName     string              `json:"last name"`
+	Party        string              `json:"party"`
+	SessionCreds session.SessionInfo `json:"session"`
 }
 
 // swagger:model loginCreds
@@ -207,6 +208,12 @@ func GetUser(writer http.ResponseWriter, request *http.Request) {
 	//   description: username for user
 	//   type: string
 	//   required: true
+	//	 - name: session_info
+	//	   in: body
+	//	   description: session info
+	//	   schema:
+	//	     "$ref": "#/definitions/sessionInfo"
+	//	   required: true
 	// responses:
 	//   '200':
 	//     description: if user is logged in
@@ -223,31 +230,46 @@ func GetUser(writer http.ResponseWriter, request *http.Request) {
 
 	params := mux.Vars(request)
 
-	db, err := sql.Open("mysql", "root:secret@tcp(0.0.0.0:3306)/voting")
+	decoder := json.NewDecoder(request.Body)
+	var si session.SessionInfo
+	err := decoder.Decode(&si)
 	if err != nil {
-		responses.GeneralSystemFailure(writer, "Cannot connect to db")
+		responses.GeneralBadRequest(writer, "Decode Failed")
 		log.Error(err)
 		return
 	}
 
-	defer db.Close()
+	valid := session.CheckSessionID(si.Username, si.SessionID)
 
-	queryString := "SELECT user_id, username, email, first_name, last_name, party_id " +
-		"FROM Users " +
-		"WHERE username=?"
+	if valid {
+		db, err := sql.Open("mysql", "root:secret@tcp(0.0.0.0:3306)/voting")
+		if err != nil {
+			responses.GeneralSystemFailure(writer, "Cannot connect to db")
+			log.Error(err)
+			return
+		}
 
-	var user User
-	err = db.QueryRow(queryString, params["username"]).Scan(&user.UserId, &user.Username, &user.Email, &user.FirstName,
-		&user.LastName, &user.Party)
-	if err != nil {
-		responses.GeneralSystemFailure(writer, "Failed query")
-		log.Error(err)
-		return
+		defer db.Close()
+
+		queryString := "SELECT user_id, username, email, first_name, last_name, party_id " +
+			"FROM Users " +
+			"WHERE username=?"
+
+		var user User
+		err = db.QueryRow(queryString, params["username"]).Scan(&user.UserId, &user.Username, &user.Email, &user.FirstName,
+			&user.LastName, &user.Party)
+		if err != nil {
+			responses.GeneralSystemFailure(writer, "Failed query")
+			log.Error(err)
+			return
+		}
+
+		writer.Header().Set("Content-Type", "application/json")
+		writer.WriteHeader(200)
+		_ = json.NewEncoder(writer).Encode(user)
+	} else {
+		responses.GeneralBadRequest(writer, "Bad Session Token")
 	}
-
-	writer.Header().Set("Content-Type", "application/json")
-	writer.WriteHeader(200)
-	_ = json.NewEncoder(writer).Encode(user)
 }
 
 func UpdateUser(writer http.ResponseWriter, request *http.Request) {
@@ -295,45 +317,52 @@ func UpdateUser(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	db, err := sql.Open("mysql", "root:secret@tcp(0.0.0.0:3306)/voting")
-	if err != nil {
-		responses.GeneralSystemFailure(writer, "Cannot connect to db")
-		log.Error(err)
-		return
-	}
+	valid := session.CheckSessionID(u.SessionCreds.Username, u.SessionCreds.SessionID)
 
-	defer db.Close()
+	if valid {
 
-	queryString := "UPDATE Users " +
-		"SET email=?, first_name=?, last_name=?, party_id=? " +
-		"WHERE username=?"
-
-	partyID := getPartyIdForParty(writer, u.Party)
-
-	//If it's failed we've already returned an error message so all we need to do is exit this function
-	if partyID != -1 {
-
-		r, err := db.Exec(queryString, u.Email, u.FirstName, u.LastName, partyID, params["username"])
+		db, err := sql.Open("mysql", "root:secret@tcp(0.0.0.0:3306)/voting")
 		if err != nil {
-			responses.GeneralSystemFailure(writer, "Query Failed")
+			responses.GeneralSystemFailure(writer, "Cannot connect to db")
 			log.Error(err)
 			return
 		}
 
-		rowsAffected, err := r.RowsAffected()
+		defer db.Close()
 
-		if err != nil {
-			responses.GeneralSystemFailure(writer, "Query Failed")
-			log.Error(err)
-			return
+		queryString := "UPDATE Users " +
+			"SET email=?, first_name=?, last_name=?, party_id=? " +
+			"WHERE username=?"
+
+		partyID := getPartyIdForParty(writer, u.Party)
+
+		//If it's failed we've already returned an error message so all we need to do is exit this function
+		if partyID != -1 {
+
+			r, err := db.Exec(queryString, u.Email, u.FirstName, u.LastName, partyID, params["username"])
+			if err != nil {
+				responses.GeneralSystemFailure(writer, "Query Failed")
+				log.Error(err)
+				return
+			}
+
+			rowsAffected, err := r.RowsAffected()
+
+			if err != nil {
+				responses.GeneralSystemFailure(writer, "Query Failed")
+				log.Error(err)
+				return
+			}
+
+			if rowsAffected == 0 {
+				responses.GeneralSystemFailure(writer, "Query Failed")
+				return
+			}
+
+			responses.GeneralSuccess(writer, "Success")
 		}
-
-		if rowsAffected == 0 {
-			responses.GeneralSystemFailure(writer, "Query Failed")
-			return
-		}
-
-		responses.GeneralSuccess(writer, "Success")
+	} else {
+		responses.GeneralBadRequest(writer, "Bad Session Token")
 	}
 }
 
@@ -430,6 +459,12 @@ func GetPermissionsForUser(writer http.ResponseWriter, request *http.Request) {
 	//   description: username for user we want permissions for
 	//   type: string
 	//   required: true
+	//	 - name: session_info
+	//	   in: body
+	//	   description: session info
+	//	   schema:
+	//	     "$ref": "#/definitions/sessionInfo"
+	//	   required: true
 	// responses:
 	//   '200':
 	//     description: permission we got
@@ -446,50 +481,66 @@ func GetPermissionsForUser(writer http.ResponseWriter, request *http.Request) {
 
 	params := mux.Vars(request)
 
-	db, err := sql.Open("mysql", "root:secret@tcp(0.0.0.0:3306)/voting")
+	decoder := json.NewDecoder(request.Body)
+	var si session.SessionInfo
+	err := decoder.Decode(&si)
 	if err != nil {
-		responses.GeneralSystemFailure(writer, "Cannot connect to db")
+		responses.GeneralBadRequest(writer, "Decode Failed")
 		log.Error(err)
 		return
 	}
 
-	defer db.Close()
+	valid := session.CheckSessionID(si.Username, si.SessionID)
 
-	queryString := "SELECT permission " +
-		"FROM Permissions " +
-		"INNER JOIN User_Permissions ON User_Permissions.permission_id = Permissions.permission_id " +
-		"INNER JOIN Users ON Users.user_id = User_Permissions.user_id " +
-		"WHERE username=?"
+	if valid {
 
-	rows, err := db.Query(queryString, params["username"])
-	if err != nil {
-		responses.GeneralSystemFailure(writer, "Failed query")
-		log.Error(err)
-		return
-	}
-
-	var permissions []Permission
-
-	defer rows.Close()
-
-	for rows.Next() {
-		var p = Permission{}
-		err = rows.Scan(&p.Permission)
-
+		db, err := sql.Open("mysql", "root:secret@tcp(0.0.0.0:3306)/voting")
 		if err != nil {
-			responses.GeneralSystemFailure(writer, "Get Failed")
+			responses.GeneralSystemFailure(writer, "Cannot connect to db")
 			log.Error(err)
 			return
 		}
 
-		permissions = append(permissions, p)
+		defer db.Close()
+
+		queryString := "SELECT permission " +
+			"FROM Permissions " +
+			"INNER JOIN User_Permissions ON User_Permissions.permission_id = Permissions.permission_id " +
+			"INNER JOIN Users ON Users.user_id = User_Permissions.user_id " +
+			"WHERE username=?"
+
+		rows, err := db.Query(queryString, params["username"])
+		if err != nil {
+			responses.GeneralSystemFailure(writer, "Failed query")
+			log.Error(err)
+			return
+		}
+
+		var permissions []Permission
+
+		defer rows.Close()
+
+		for rows.Next() {
+			var p = Permission{}
+			err = rows.Scan(&p.Permission)
+
+			if err != nil {
+				responses.GeneralSystemFailure(writer, "Get Failed")
+				log.Error(err)
+				return
+			}
+
+			permissions = append(permissions, p)
+		}
+
+		resp := PermissionsStruct{Permissions: permissions}
+
+		writer.Header().Set("Content-Type", "application/json")
+		writer.WriteHeader(200)
+		_ = json.NewEncoder(writer).Encode(resp)
+	} else {
+		responses.GeneralBadRequest(writer, "Bad Session Token")
 	}
-
-	resp := PermissionsStruct{Permissions: permissions}
-
-	writer.Header().Set("Content-Type", "application/json")
-	writer.WriteHeader(200)
-	_ = json.NewEncoder(writer).Encode(resp)
 }
 
 func AddPermissionForUser(writer http.ResponseWriter, request *http.Request) {
@@ -511,6 +562,12 @@ func AddPermissionForUser(writer http.ResponseWriter, request *http.Request) {
 	//   description: permission to link with user
 	//   type: string
 	//   required: true
+	//	 - name: session_info
+	//	   in: body
+	//	   description: session info
+	//	   schema:
+	//	     "$ref": "#/definitions/sessionInfo"
+	//	   required: true
 	// responses:
 	//   '200':
 	//     description: permission we got
@@ -527,63 +584,79 @@ func AddPermissionForUser(writer http.ResponseWriter, request *http.Request) {
 
 	params := mux.Vars(request)
 
-	db, err := sql.Open("mysql", "root:secret@tcp(0.0.0.0:3306)/voting")
+	decoder := json.NewDecoder(request.Body)
+	var si session.SessionInfo
+	err := decoder.Decode(&si)
 	if err != nil {
-		responses.GeneralSystemFailure(writer, "Cannot connect to db")
+		responses.GeneralBadRequest(writer, "Decode Failed")
 		log.Error(err)
 		return
 	}
 
-	defer db.Close()
+	valid := session.CheckSessionID(si.Username, si.SessionID)
 
-	queryString := "SELECT user_id " +
-		"FROM Users " +
-		"WHERE username=?"
+	if valid {
 
-	var userId int
-	err = db.QueryRow(queryString, params["username"]).Scan(&userId)
-	if err != nil {
-		responses.GeneralSystemFailure(writer, "Failed query")
-		log.Error(err)
-		return
+		db, err := sql.Open("mysql", "root:secret@tcp(0.0.0.0:3306)/voting")
+		if err != nil {
+			responses.GeneralSystemFailure(writer, "Cannot connect to db")
+			log.Error(err)
+			return
+		}
+
+		defer db.Close()
+
+		queryString := "SELECT user_id " +
+			"FROM Users " +
+			"WHERE username=?"
+
+		var userId int
+		err = db.QueryRow(queryString, params["username"]).Scan(&userId)
+		if err != nil {
+			responses.GeneralSystemFailure(writer, "Failed query")
+			log.Error(err)
+			return
+		}
+
+		queryString = "SELECT permission_id " +
+			"FROM Permissions " +
+			"WHERE permission=?"
+
+		var permissionID int
+		err = db.QueryRow(queryString, params["permission"]).Scan(&permissionID)
+		if err != nil {
+			responses.GeneralSystemFailure(writer, "Failed query")
+			log.Error(err)
+			return
+		}
+
+		queryString = "INSERT INTO User_Permissions(permission_id, user_id)  " +
+			"VALUES(?, ?)"
+
+		r, err := db.Exec(queryString, userId, permissionID)
+		if err != nil {
+			responses.GeneralSystemFailure(writer, "Query Failed")
+			log.Error(err)
+			return
+		}
+
+		rowsAffected, err := r.RowsAffected()
+
+		if err != nil {
+			responses.GeneralSystemFailure(writer, "Query Failed")
+			log.Error(err)
+			return
+		}
+
+		if rowsAffected == 0 {
+			responses.GeneralSystemFailure(writer, "Query Failed")
+			return
+		}
+
+		responses.GeneralSuccess(writer, "Success")
+	} else {
+		responses.GeneralBadRequest(writer, "Bad Session Token")
 	}
-
-	queryString = "SELECT permission_id " +
-		"FROM Permissions " +
-		"WHERE permission=?"
-
-	var permissionID int
-	err = db.QueryRow(queryString, params["permission"]).Scan(&permissionID)
-	if err != nil {
-		responses.GeneralSystemFailure(writer, "Failed query")
-		log.Error(err)
-		return
-	}
-
-	queryString = "INSERT INTO User_Permissions(permission_id, user_id)  " +
-		"VALUES(?, ?)"
-
-	r, err := db.Exec(queryString, userId, permissionID)
-	if err != nil {
-		responses.GeneralSystemFailure(writer, "Query Failed")
-		log.Error(err)
-		return
-	}
-
-	rowsAffected, err := r.RowsAffected()
-
-	if err != nil {
-		responses.GeneralSystemFailure(writer, "Query Failed")
-		log.Error(err)
-		return
-	}
-
-	if rowsAffected == 0 {
-		responses.GeneralSystemFailure(writer, "Query Failed")
-		return
-	}
-
-	responses.GeneralSuccess(writer, "Success")
 }
 
 func RemovePermissionForUser(writer http.ResponseWriter, request *http.Request) {
@@ -605,6 +678,12 @@ func RemovePermissionForUser(writer http.ResponseWriter, request *http.Request) 
 	//   description: permission to delete
 	//   type: string
 	//   required: true
+	//	 - name: session_info
+	//	   in: body
+	//	   description: session info
+	//	   schema:
+	//	     "$ref": "#/definitions/sessionInfo"
+	//	   required: true
 	// responses:
 	//   '200':
 	//     description: delete permission
@@ -621,61 +700,77 @@ func RemovePermissionForUser(writer http.ResponseWriter, request *http.Request) 
 
 	params := mux.Vars(request)
 
-	db, err := sql.Open("mysql", "root:secret@tcp(0.0.0.0:3306)/voting")
+	decoder := json.NewDecoder(request.Body)
+	var si session.SessionInfo
+	err := decoder.Decode(&si)
 	if err != nil {
-		responses.GeneralSystemFailure(writer, "Cannot connect to db")
+		responses.GeneralBadRequest(writer, "Decode Failed")
 		log.Error(err)
 		return
 	}
 
-	defer db.Close()
+	valid := session.CheckSessionID(si.Username, si.SessionID)
 
-	queryString := "SELECT user_id " +
-		"FROM Users " +
-		"WHERE username=?"
+	if valid {
 
-	var userId int
-	err = db.QueryRow(queryString, params["username"]).Scan(&userId)
-	if err != nil {
-		responses.GeneralSystemFailure(writer, "Failed query")
-		log.Error(err)
-		return
+		db, err := sql.Open("mysql", "root:secret@tcp(0.0.0.0:3306)/voting")
+		if err != nil {
+			responses.GeneralSystemFailure(writer, "Cannot connect to db")
+			log.Error(err)
+			return
+		}
+
+		defer db.Close()
+
+		queryString := "SELECT user_id " +
+			"FROM Users " +
+			"WHERE username=?"
+
+		var userId int
+		err = db.QueryRow(queryString, params["username"]).Scan(&userId)
+		if err != nil {
+			responses.GeneralSystemFailure(writer, "Failed query")
+			log.Error(err)
+			return
+		}
+
+		queryString = "SELECT permission_id " +
+			"FROM Permissions " +
+			"WHERE permission=?"
+
+		var permissionID int
+		err = db.QueryRow(queryString, params["permission"]).Scan(&permissionID)
+		if err != nil {
+			responses.GeneralSystemFailure(writer, "Failed query")
+			log.Error(err)
+			return
+		}
+
+		queryString = "DELETE FROM User_Permissions " +
+			"WHERE user_id=? AND permission_id=?"
+
+		r, err := db.Exec(queryString, userId, permissionID)
+		if err != nil {
+			responses.GeneralSystemFailure(writer, "Query Failed")
+			log.Error(err)
+			return
+		}
+
+		rowsAffected, err := r.RowsAffected()
+
+		if err != nil {
+			responses.GeneralSystemFailure(writer, "Query Failed")
+			log.Error(err)
+			return
+		}
+
+		if rowsAffected == 0 {
+			responses.GeneralSystemFailure(writer, "Query Failed")
+			return
+		}
+
+		responses.GeneralSuccess(writer, "Success")
+	} else {
+		responses.GeneralBadRequest(writer, "Bad Session Token")
 	}
-
-	queryString = "SELECT permission_id " +
-		"FROM Permissions " +
-		"WHERE permission=?"
-
-	var permissionID int
-	err = db.QueryRow(queryString, params["permission"]).Scan(&permissionID)
-	if err != nil {
-		responses.GeneralSystemFailure(writer, "Failed query")
-		log.Error(err)
-		return
-	}
-
-	queryString = "DELETE FROM User_Permissions " +
-		"WHERE user_id=? AND permission_id=?"
-
-	r, err := db.Exec(queryString, userId, permissionID)
-	if err != nil {
-		responses.GeneralSystemFailure(writer, "Query Failed")
-		log.Error(err)
-		return
-	}
-
-	rowsAffected, err := r.RowsAffected()
-
-	if err != nil {
-		responses.GeneralSystemFailure(writer, "Query Failed")
-		log.Error(err)
-		return
-	}
-
-	if rowsAffected == 0 {
-		responses.GeneralSystemFailure(writer, "Query Failed")
-		return
-	}
-
-	responses.GeneralSuccess(writer, "Success")
 }

@@ -8,6 +8,7 @@ import (
 	"voting_web_service/internal/app/responses"
 )
 
+// swagger:model sessionInfo
 type SessionInfo struct {
 	SessionID string `json:"session_id"`
 	Username  string `json:"username"`
