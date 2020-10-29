@@ -52,6 +52,10 @@ type PermissionsStruct struct {
 	Permissions []Permission `json:"permissions"`
 }
 
+type SecretKeyStruct struct {
+	SecretKey string `json:"secret_key"`
+}
+
 func hashAndSalt(pwd []byte) string {
 
 	// Use GenerateFromPassword to hash & salt pwd.
@@ -155,22 +159,26 @@ func LoginUser(writer http.ResponseWriter, request *http.Request) {
 
 	defer db.Close()
 
-	queryString := "SELECT hashed_password " +
+	queryString := "SELECT hashed_password, secret_key " +
 		"FROM Users " +
 		"WHERE username=?"
 
 	var hashedPass string
-	err = db.QueryRow(queryString, lc.Username).Scan(&hashedPass)
+	var secretKey string
+
+	err = db.QueryRow(queryString, lc.Username).Scan(&hashedPass, &secretKey)
 	if err != nil {
 		responses.GeneralSystemFailure(writer, "Failed query")
 		log.Error(err)
 		return
 	}
 
-	exists := isCorrectPassword(writer, []byte(hashedPass), []byte(lc.Password))
+	isCorrect := isCorrectPassword(writer, []byte(hashedPass), []byte(lc.Password))
 
-	if exists {
-		responses.GeneralSuccess(writer, "User Exists")
+	if isCorrect {
+		writer.Header().Set("Content-Type", "application/json")
+		writer.WriteHeader(200)
+		_ = json.NewEncoder(writer).Encode(SecretKeyStruct{SecretKey: secretKey})
 	} else {
 		responses.GeneralNoContent(writer, "User does not exist")
 	}
