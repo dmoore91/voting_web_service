@@ -7,6 +7,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"voting_web_service/internal/app/responses"
+	"voting_web_service/internal/app/session"
 )
 
 // swagger:model party
@@ -34,6 +35,12 @@ func CreateParty(writer http.ResponseWriter, request *http.Request) {
 	//	  description: name of party to add
 	//	  type: string
 	//	  required: true
+	//	 - name: session_info
+	//	   in: body
+	//	   description: session info
+	//	   schema:
+	//	     "$ref": "#/definitions/sessionInfo"
+	//	   required: true
 	// responses:
 	//   '200':
 	//     description: party added
@@ -50,39 +57,54 @@ func CreateParty(writer http.ResponseWriter, request *http.Request) {
 
 	params := mux.Vars(request)
 
-	db, err := sql.Open("mysql", "root:secret@tcp(0.0.0.0:3306)/voting")
+	decoder := json.NewDecoder(request.Body)
+	var si session.SessionInfo
+	err := decoder.Decode(&si)
 	if err != nil {
-		responses.GeneralSystemFailure(writer, "Cannot connect to db")
+		responses.GeneralBadRequest(writer, "Decode Failed")
 		log.Error(err)
 		return
 	}
 
-	defer db.Close()
+	valid := session.CheckSessionID(si.Username, si.SessionID)
 
-	queryString := "INSERT INTO Party(party)  " +
-		"VALUES(?)"
+	if valid {
+		db, err := sql.Open("mysql", "root:secret@tcp(0.0.0.0:3306)/voting")
+		if err != nil {
+			responses.GeneralSystemFailure(writer, "Cannot connect to db")
+			log.Error(err)
+			return
+		}
 
-	r, err := db.Exec(queryString, params["party"])
-	if err != nil {
-		responses.GeneralSystemFailure(writer, "Query Failed")
-		log.Error(err)
-		return
+		defer db.Close()
+
+		queryString := "INSERT INTO Party(party)  " +
+			"VALUES(?)"
+
+		r, err := db.Exec(queryString, params["party"])
+		if err != nil {
+			responses.GeneralSystemFailure(writer, "Query Failed")
+			log.Error(err)
+			return
+		}
+
+		rowsAffected, err := r.RowsAffected()
+
+		if err != nil {
+			responses.GeneralSystemFailure(writer, "Query Failed")
+			log.Error(err)
+			return
+		}
+
+		if rowsAffected == 0 {
+			responses.GeneralSystemFailure(writer, "Query Failed")
+			return
+		}
+
+		responses.GeneralSuccess(writer, "Success")
+	} else {
+		responses.GeneralBadRequest(writer, "Bad Session Token")
 	}
-
-	rowsAffected, err := r.RowsAffected()
-
-	if err != nil {
-		responses.GeneralSystemFailure(writer, "Query Failed")
-		log.Error(err)
-		return
-	}
-
-	if rowsAffected == 0 {
-		responses.GeneralSystemFailure(writer, "Query Failed")
-		return
-	}
-
-	responses.GeneralSuccess(writer, "Success")
 }
 
 func GetParties(writer http.ResponseWriter, request *http.Request) {
@@ -93,6 +115,13 @@ func GetParties(writer http.ResponseWriter, request *http.Request) {
 	// ---
 	// produces:
 	// - application/json
+	// parameters:
+	//	 - name: session_info
+	//	   in: body
+	//	   description: session info
+	//	   schema:
+	//	     "$ref": "#/definitions/sessionInfo"
+	//	   required: true
 	// responses:
 	//   '200':
 	//     description: parties
@@ -106,47 +135,62 @@ func GetParties(writer http.ResponseWriter, request *http.Request) {
 	//     description: server error
 	//     schema:
 
-	db, err := sql.Open("mysql", "root:secret@tcp(0.0.0.0:3306)/voting")
+	decoder := json.NewDecoder(request.Body)
+	var si session.SessionInfo
+	err := decoder.Decode(&si)
 	if err != nil {
-		responses.GeneralSystemFailure(writer, "Cannot connect to db")
+		responses.GeneralBadRequest(writer, "Decode Failed")
 		log.Error(err)
 		return
 	}
 
-	defer db.Close()
+	valid := session.CheckSessionID(si.Username, si.SessionID)
 
-	queryString := "SELECT party_id, party " +
-		"FROM Party"
-
-	rows, err := db.Query(queryString)
-	if err != nil {
-		responses.GeneralSystemFailure(writer, "Failed query")
-		log.Error(err)
-		return
-	}
-
-	var parties []party
-
-	defer rows.Close()
-
-	for rows.Next() {
-		var p = party{}
-		err = rows.Scan(&p.Id, &p.Party)
-
+	if valid {
+		db, err := sql.Open("mysql", "root:secret@tcp(0.0.0.0:3306)/voting")
 		if err != nil {
-			responses.GeneralSystemFailure(writer, "Get Failed")
+			responses.GeneralSystemFailure(writer, "Cannot connect to db")
 			log.Error(err)
 			return
 		}
 
-		parties = append(parties, p)
+		defer db.Close()
+
+		queryString := "SELECT party_id, party " +
+			"FROM Party"
+
+		rows, err := db.Query(queryString)
+		if err != nil {
+			responses.GeneralSystemFailure(writer, "Failed query")
+			log.Error(err)
+			return
+		}
+
+		var parties []party
+
+		defer rows.Close()
+
+		for rows.Next() {
+			var p = party{}
+			err = rows.Scan(&p.Id, &p.Party)
+
+			if err != nil {
+				responses.GeneralSystemFailure(writer, "Get Failed")
+				log.Error(err)
+				return
+			}
+
+			parties = append(parties, p)
+		}
+
+		resp := partyList{Parties: parties}
+
+		writer.Header().Set("Content-Type", "application/json")
+		writer.WriteHeader(200)
+		_ = json.NewEncoder(writer).Encode(resp)
+	} else {
+		responses.GeneralBadRequest(writer, "Bad Session Token")
 	}
-
-	resp := partyList{Parties: parties}
-
-	writer.Header().Set("Content-Type", "application/json")
-	writer.WriteHeader(200)
-	_ = json.NewEncoder(writer).Encode(resp)
 }
 
 func LinkUserAndParty(writer http.ResponseWriter, request *http.Request) {
@@ -167,6 +211,12 @@ func LinkUserAndParty(writer http.ResponseWriter, request *http.Request) {
 	//	  description: name of user to link
 	//	  type: string
 	//	  required: true
+	//	 - name: session_info
+	//	   in: body
+	//	   description: session info
+	//	   schema:
+	//	     "$ref": "#/definitions/sessionInfo"
+	//	   required: true
 	// responses:
 	//   '200':
 	//     description: user and party linked
@@ -180,51 +230,67 @@ func LinkUserAndParty(writer http.ResponseWriter, request *http.Request) {
 	//     description: server error
 	//     schema:
 
-	params := mux.Vars(request)
-
-	db, err := sql.Open("mysql", "root:secret@tcp(0.0.0.0:3306)/voting")
+	decoder := json.NewDecoder(request.Body)
+	var si session.SessionInfo
+	err := decoder.Decode(&si)
 	if err != nil {
-		responses.GeneralSystemFailure(writer, "Cannot connect to db")
+		responses.GeneralBadRequest(writer, "Decode Failed")
 		log.Error(err)
 		return
 	}
 
-	defer db.Close()
+	valid := session.CheckSessionID(si.Username, si.SessionID)
 
-	queryString := "SELECT party_id " +
-		"FROM Party " +
-		"WHERE party=?"
+	if valid {
 
-	var partyID int
-	err = db.QueryRow(queryString, params["party"]).Scan(&partyID)
-	if err != nil {
-		responses.GeneralSystemFailure(writer, "Query Failed")
-		log.Error(err)
-		return
+		params := mux.Vars(request)
+
+		db, err := sql.Open("mysql", "root:secret@tcp(0.0.0.0:3306)/voting")
+		if err != nil {
+			responses.GeneralSystemFailure(writer, "Cannot connect to db")
+			log.Error(err)
+			return
+		}
+
+		defer db.Close()
+
+		queryString := "SELECT party_id " +
+			"FROM Party " +
+			"WHERE party=?"
+
+		var partyID int
+		err = db.QueryRow(queryString, params["party"]).Scan(&partyID)
+		if err != nil {
+			responses.GeneralSystemFailure(writer, "Query Failed")
+			log.Error(err)
+			return
+		}
+
+		queryString = "SELECT user_id " +
+			"FROM Users " +
+			"WHERE username=?"
+
+		var userID int
+		err = db.QueryRow(queryString, params["user"]).Scan(&userID)
+		if err != nil {
+			responses.GeneralSystemFailure(writer, "Query Failed")
+			log.Error(err)
+			return
+		}
+
+		queryString = "Update Users " +
+			"SET party_id=? " +
+			"WHERE user_id=?"
+
+		_, err = db.Exec(queryString, partyID, userID)
+		if err != nil {
+			responses.GeneralSystemFailure(writer, "Query Failed")
+			log.Error(err)
+			return
+		}
+
+		responses.GeneralSuccess(writer, "Success")
+	} else {
+		responses.GeneralBadRequest(writer, "Bad Session Token")
 	}
-
-	queryString = "SELECT user_id " +
-		"FROM Users " +
-		"WHERE username=?"
-
-	var userID int
-	err = db.QueryRow(queryString, params["user"]).Scan(&userID)
-	if err != nil {
-		responses.GeneralSystemFailure(writer, "Query Failed")
-		log.Error(err)
-		return
-	}
-
-	queryString = "Update Users " +
-		"SET party_id=? " +
-		"WHERE user_id=?"
-
-	_, err = db.Exec(queryString, partyID, userID)
-	if err != nil {
-		responses.GeneralSystemFailure(writer, "Query Failed")
-		log.Error(err)
-		return
-	}
-
-	responses.GeneralSuccess(writer, "Success")
 }
