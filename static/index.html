@@ -62,7 +62,7 @@
             url: "https://localhost:8880/voting/tfa"
         }).then(function(data) {
             var tfaData = JSON.parse(data);
-            $('#secret').attr('src', tfaData['data'])
+            $('#secret').attr('src', tfaData['data']);
             $('#secret').data('secret', tfaData['secret'])
         });
     </script>

@@ -42,9 +42,7 @@ func GetTfa(writer http.ResponseWriter, request *http.Request) {
 }
 
 func Validate(writer http.ResponseWriter, request *http.Request) {
-	// get the secret from the User table
-	// get the user 2FA input
-	// pass the two into the bash script
-	//
-	out, err := exec.Command("/bin/bash", "internal/app/tfa/validate.sh ").Output()
+	token := "GET IT FROM THE POST DATA that is sent through the frontend"
+	secret := "GET IT FROM THE USER TABLE"
+	out, err := exec.Command("/bin/bash", "internal/app/tfa/validate.sh " + secret + " " + token).Output()
 }
