@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strings"
 	"time"
+	"voting_web_service/internal/app/tfa"
 	"voting_web_service/internal/app/candidate"
 	"voting_web_service/internal/app/party"
 	"voting_web_service/internal/app/permission"
@@ -73,6 +74,7 @@ func InitializeRoutes(router *mux.Router, basePath string) {
 	candidate.InitializeRoutes(router, basePath)
 	voting.InitializeRoutes(router, basePath)
 	session.InitializeRoutes(router, basePath)
+	tfa.InitializeRoutes(router, basePath)
 }
 
 func Middleware(h http.Handler) http.Handler {

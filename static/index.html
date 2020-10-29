@@ -3,6 +3,7 @@
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
 <script type="text/javascript" src="js/endpoints.js"></script>
+<!--<script type="text/javascript" src="js/2fa.js"></script>-->
 <link rel="stylesheet" href="css/styling.css">
 <body>
     <form id="signup-form" onsubmit="signup()" style="border:1px solid #ccc">
@@ -41,6 +42,10 @@
             <label for="password"><b>Password</b></label>
             <input type="password" placeholder="Enter Password" name="password" required>
 
+            <img id="secret">
+
+
+
             <div class="clearfix">
                 <button type="submit" class="signupbtn">Sign Up</button>
             </div>
@@ -55,9 +60,10 @@
 <script>
     $.ajax({
         dataType: "text",
-        url: "https://localhost:8880/voting/ping"
+        url: "https://localhost:8880/voting/tfa"
     }).then(function(data) {
         console.log(data)
     });
+
 </script>
 </html>
