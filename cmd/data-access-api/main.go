@@ -13,6 +13,7 @@ import (
 	"voting_web_service/internal/app/party"
 	"voting_web_service/internal/app/permission"
 	"voting_web_service/internal/app/ping"
+	"voting_web_service/internal/app/session"
 	"voting_web_service/internal/app/users"
 	"voting_web_service/internal/app/voting"
 )
@@ -71,6 +72,7 @@ func InitializeRoutes(router *mux.Router, basePath string) {
 	party.InitializeRoutes(router, basePath)
 	candidate.InitializeRoutes(router, basePath)
 	voting.InitializeRoutes(router, basePath)
+	session.InitializeRoutes(router, basePath)
 }
 
 func Middleware(h http.Handler) http.Handler {
