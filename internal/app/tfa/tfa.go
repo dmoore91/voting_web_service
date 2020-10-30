@@ -26,6 +26,9 @@ type ValidateStruct struct {
 }
 
 func GetTfa(writer http.ResponseWriter, request *http.Request) {
+	// GET /GetTfa
+	//
+	// Endpoint to get the TFA secret
 
 	out, err := exec.Command("/bin/bash", "internal/app/tfa/sample.sh").Output()
 	mydir, _ := os.Getwd()

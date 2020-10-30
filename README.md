@@ -25,4 +25,4 @@ Helpful links:
 
 
 ### Localhost
-Go to `https://localhost:8880` to see application. 
+Go to `https://localhost:8880` to see application
