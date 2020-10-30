@@ -15,4 +15,14 @@ Run the docker compose file from the top directory and ensure that the init_db.s
 * Navigate to cmd/voting_web_service/main.go
 * Execute go run main.go
 
+### HTTPS
+To enable HTTPS, you'll need to set up local certificate.
 
+Helpful links:
+* https://www.freecodecamp.org/news/how-to-get-https-working-on-your-local-development-environment-in-5-minutes-7af615770eec/
+* https://askubuntu.com/questions/73287/how-do-i-install-a-root-certificate
+* https://www.digitalocean.com/community/tutorials/how-to-configure-nginx-with-ssl-as-a-reverse-proxy-for-jenkins
+
+
+### Localhost
+Go to `https://localhost:8880` to see application. 
