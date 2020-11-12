@@ -1,6 +1,22 @@
 version: '3'
 
 services:
+    server:
+        build:
+            context: .
+            dockerfile: ./docker_files/Dockerfile
+        image: go_server
+        container_name: go_server
+        ports:
+            - "8880:8880"
+        tty: true
+        links:
+            - "database"
+        depends_on:
+            - "database"
+        networks:
+            - vote_net
+
     database:
         build:
             context: .
@@ -20,40 +36,27 @@ services:
             MYSQL_PASSWORD: secret
         tty: true
         networks:
-            - backend
+            - vote_net
+            #ipv4_address: 172.60.0.21
 
-    server:
-        build:
-            context: .
-            dockerfile: ./docker_files/Dockerfile
-        image: go_server
-        container_name: go_server
-        ports:
-            - "8880:8880"
-        tty: true
-        depends_on:
-            - database
-        networks:
-            - backend
-
-    webserver:
-        image: nginx:mainline-alpine
-        container_name: webserver
-        hostname: webserver
-        ports:
-            - "80:80"
-            - "443:443"
-        volumes:
-            - ./nginx-conf:/etc/nginx/conf.d
-              #- ./cert.pem:/etc/ssl/private/fullchain.pem
-              #- ./key.pem:/etc/ssl/private/privkey.pem
-        depends_on:
-            - server
-            - database
-        networks:
-            - backend
-#        network_mode: "host"
+              #webserver:
+              #    image: nginx:mainline-alpine
+              #    container_name: webserver
+              #    hostname: webserver
+              #    ports:
+              #        - "80:80"
+              #        - "443:443"
+              #    volumes:
+              #        - ./nginx-conf:/etc/nginx/conf.d
+              #          #- ./cert.pem:/etc/ssl/private/fullchain.pem
+              #          #- ./key.pem:/etc/ssl/private/privkey.pem
+              #    depends_on:
+              #        - server
+              #        - database
+              #    networks:
+              #        - backend
+#             #     network_mode: "host"
 
 networks:
-    backend:
-        driver: bridge
+    vote_net:
+        external: true
