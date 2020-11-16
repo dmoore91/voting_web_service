@@ -23,11 +23,13 @@ services:
             dockerfile: ./docker_files/Dockerfile-mysql
         image: mysql_db
         container_name: mysql_db
-        ports:
-            - "3306:3306"
-        command: --init-file /data/application/init.sql
+        #ports:
+        #    - "3306:3306"
+              #command: --init-file /data/application/init.sql
+              #command: sh -c "python3 /home/populate_db.py"
         volumes:
             - ./init_db.sql:/data/application/init.sql
+            - ./init_db.sql:/docker-entrypoint-initdb.d/init.sql
 #            - ./mysql_data/:/var/lib/mysql
         environment:
             MYSQL_ROOT_PASSWORD: secret
@@ -37,25 +39,23 @@ services:
         tty: true
         networks:
             - vote_net
-            #ipv4_address: 172.60.0.21
 
-              #webserver:
-              #    image: nginx:mainline-alpine
-              #    container_name: webserver
-              #    hostname: webserver
-              #    ports:
-              #        - "80:80"
-              #        - "443:443"
-              #    volumes:
-              #        - ./nginx-conf:/etc/nginx/conf.d
-              #          #- ./cert.pem:/etc/ssl/private/fullchain.pem
-              #          #- ./key.pem:/etc/ssl/private/privkey.pem
-              #    depends_on:
-              #        - server
-              #        - database
-              #    networks:
-              #        - backend
-#             #     network_mode: "host"
+    webserver:
+      image: nginx:mainline-alpine
+      container_name: webserver
+      hostname: webserver
+      ports:
+          - "80:80"
+          - "443:443"
+      volumes:
+          - ./nginx-conf:/etc/nginx/conf.d
+            #- ./cert.pem:/etc/ssl/private/fullchain.pem
+            #- ./key.pem:/etc/ssl/private/privkey.pem
+      depends_on:
+          - "server"
+          - "database"
+      networks:
+          - vote_net
 
 networks:
     vote_net:
