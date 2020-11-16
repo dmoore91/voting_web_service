@@ -19,7 +19,7 @@ type SessionInfo struct {
 // This takes care of the authentication step in auth/auth
 func CheckSessionID(username string, sessionId string) bool {
 
-	db, err := sql.Open("mysql", "root:secret@tcp(0.0.0.0:3306)/voting")
+	db, err := sql.Open("mysql", "root:secret@tcp(mysql_db:3306)/voting")
 	if err != nil {
 		return false
 	}
@@ -87,7 +87,7 @@ func SetSessionIdNull(writer http.ResponseWriter, request *http.Request) {
 	if valid {
 		params := mux.Vars(request)
 
-		db, err := sql.Open("mysql", "root:secret@tcp(0.0.0.0:3306)/voting")
+		db, err := sql.Open("mysql", "root:secret@tcp(mysql_db:3306)/voting")
 		if err != nil {
 			responses.GeneralSystemFailure(writer, "Cannot connect to db")
 			log.Error(err)

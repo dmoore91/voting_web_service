@@ -63,7 +63,7 @@ func AddPermission(writer http.ResponseWriter, request *http.Request) {
 	if valid {
 		params := mux.Vars(request)
 
-		db, err := sql.Open("mysql", "root:secret@tcp(0.0.0.0:3306)/voting")
+		db, err := sql.Open("mysql", "root:secret@tcp(mysql_db:3306)/voting")
 		if err != nil {
 			responses.GeneralSystemFailure(writer, "Cannot connect to db")
 			log.Error(err)
@@ -149,7 +149,7 @@ func GetUsersForPermission(writer http.ResponseWriter, request *http.Request) {
 	if valid {
 		params := mux.Vars(request)
 
-		db, err := sql.Open("mysql", "root:secret@tcp(0.0.0.0:3306)/voting")
+		db, err := sql.Open("mysql", "root:secret@tcp(mysql_db:3306)/voting")
 		if err != nil {
 			responses.GeneralSystemFailure(writer, "Cannot connect to db")
 			log.Error(err)
