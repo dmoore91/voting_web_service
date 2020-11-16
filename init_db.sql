@@ -41,3 +41,16 @@ CREATE TABLE IF NOT EXISTS Candidate(
 );
 
 COMMIT ;
+
+BEGIN ;
+
+INSERT INTO Users(username, hashed_password, email, first_name, last_name, party_id)
+VALUES  ('al', 'password', 'axs4986@gmail.com', 'Alberto', 'Serrano', 1),
+        ('jam', 'password', 'jxa7578@rit.edu', 'Jahongir', 'Amirkulov', 1),
+        ('dan', 'password', 'dxm9604@rit.edu', 'Daniel', 'Moore', 1);
+
+INSERT INTO Party(party)
+VALUES  ('democrat'), ('republican'), ('reform'), ('libertarian'), ('socialist'), ('natural'), ('constitution'),
+        ('green');
+
+COMMIT ;
