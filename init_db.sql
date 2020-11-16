@@ -51,6 +51,6 @@ VALUES  ('al', 'password', 'axs4986@gmail.com', 'Alberto', 'Serrano', 1),
 
 INSERT INTO Party(party)
 VALUES  ('democrat'), ('republican'), ('reform'), ('libertarian'), ('socialist'), ('natural'), ('constitution'),
-        ('green');
+        ('green'), (''), (' ');
 
 COMMIT ;

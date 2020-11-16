@@ -69,7 +69,7 @@ func CreateParty(writer http.ResponseWriter, request *http.Request) {
 	valid := session.CheckSessionID(si.Username, si.SessionID)
 
 	if valid {
-		db, err := sql.Open("mysql", "root:secret@tcp(0.0.0.0:3306)/voting")
+		db, err := sql.Open("mysql", "root:secret@tcp(mysql_db:3306)/voting")
 		if err != nil {
 			responses.GeneralSystemFailure(writer, "Cannot connect to db")
 			log.Error(err)
@@ -147,7 +147,7 @@ func GetParties(writer http.ResponseWriter, request *http.Request) {
 	valid := session.CheckSessionID(si.Username, si.SessionID)
 
 	if valid {
-		db, err := sql.Open("mysql", "root:secret@tcp(0.0.0.0:3306)/voting")
+		db, err := sql.Open("mysql", "root:secret@tcp(mysql_db:3306)/voting")
 		if err != nil {
 			responses.GeneralSystemFailure(writer, "Cannot connect to db")
 			log.Error(err)
@@ -245,7 +245,7 @@ func LinkUserAndParty(writer http.ResponseWriter, request *http.Request) {
 
 		params := mux.Vars(request)
 
-		db, err := sql.Open("mysql", "root:secret@tcp(0.0.0.0:3306)/voting")
+		db, err := sql.Open("mysql", "root:secret@tcp(mysql_db:3306)/voting")
 		if err != nil {
 			responses.GeneralSystemFailure(writer, "Cannot connect to db")
 			log.Error(err)
