@@ -162,8 +162,10 @@ func GetCandidates(writer http.ResponseWriter, request *http.Request) {
 
 		defer db.Close()
 
-		queryString := "SELECT candidate_id, user_id, party_id " +
-			"FROM Candidate"
+		queryString := "SELECT candidate_id, username, party " +
+			"FROM Candidate " +
+			"INNER JOIN Users ON Candidate.user_id = Users.user_id " +
+			"INNER JOIN Party ON Party.party_id = Candidate.party_id"
 
 		rows, err := db.Query(queryString)
 		if err != nil {
@@ -178,7 +180,7 @@ func GetCandidates(writer http.ResponseWriter, request *http.Request) {
 
 		for rows.Next() {
 			var c = Candidate{}
-			err = rows.Scan(&c.CandidateID, &c.UserId, &c.PartyId)
+			err = rows.Scan(&c.CandidateID, &c.Username, &c.Party)
 
 			if err != nil {
 				responses.GeneralSystemFailure(writer, "Get Failed")
@@ -257,13 +259,15 @@ func GetCandidate(writer http.ResponseWriter, request *http.Request) {
 
 		defer db.Close()
 
-		queryString := "SELECT candidate_id, user_id, party_id " +
+		queryString := "SELECT candidate_id, username, party " +
 			"FROM Candidate " +
+			"INNER JOIN Users ON Candidate.user_id = Users.user_id " +
+			"INNER JOIN Party ON Party.party_id = Candidate.party_id " +
 			"WHERE candidate_id=?"
 
 		var c Candidate
 
-		err = db.QueryRow(queryString, params["candidate_id"]).Scan(&c.CandidateID, &c.UserId, &c.PartyId)
+		err = db.QueryRow(queryString, params["candidate_id"]).Scan(&c.CandidateID, &c.Username, &c.Party)
 		if err != nil {
 			responses.GeneralSystemFailure(writer, "Failed query")
 			log.Error(err)

@@ -2,9 +2,9 @@ package candidate
 
 // swagger:model candidate
 type Candidate struct {
-	CandidateID int `json:"candidate_id"`
-	UserId      int `json:"user_id"`
-	PartyId     int `json:"party_id"`
+	CandidateID int    `json:"candidate_id"`
+	Username    string `json:"username"`
+	Party       string `json:"party"`
 }
 
 // swagger:model candidateList
