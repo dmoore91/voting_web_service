@@ -57,16 +57,7 @@ func CreateParty(writer http.ResponseWriter, request *http.Request) {
 
 	params := mux.Vars(request)
 
-	decoder := json.NewDecoder(request.Body)
-	var si session.SessionInfo
-	err := decoder.Decode(&si)
-	if err != nil {
-		responses.GeneralBadRequest(writer, "Decode Failed")
-		log.Error(err)
-		return
-	}
-
-	valid := session.CheckSessionID(si.Username, si.SessionID)
+	valid := true
 
 	if valid {
 		db, err := sql.Open("mysql", "root:secret@tcp(mysql_db:3306)/voting")
@@ -135,16 +126,7 @@ func GetParties(writer http.ResponseWriter, request *http.Request) {
 	//     description: server error
 	//     schema:
 
-	decoder := json.NewDecoder(request.Body)
-	var si session.SessionInfo
-	err := decoder.Decode(&si)
-	if err != nil {
-		responses.GeneralBadRequest(writer, "Decode Failed")
-		log.Error(err)
-		return
-	}
-
-	valid := session.CheckSessionID(si.Username, si.SessionID)
+	valid := true
 
 	if valid {
 		db, err := sql.Open("mysql", "root:secret@tcp(mysql_db:3306)/voting")
@@ -230,16 +212,7 @@ func LinkUserAndParty(writer http.ResponseWriter, request *http.Request) {
 	//     description: server error
 	//     schema:
 
-	decoder := json.NewDecoder(request.Body)
-	var si session.SessionInfo
-	err := decoder.Decode(&si)
-	if err != nil {
-		responses.GeneralBadRequest(writer, "Decode Failed")
-		log.Error(err)
-		return
-	}
-
-	valid := session.CheckSessionID(si.Username, si.SessionID)
+	valid := true
 
 	if valid {
 

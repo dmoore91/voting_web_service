@@ -49,16 +49,7 @@ func AddPermission(writer http.ResponseWriter, request *http.Request) {
 	//     schema:
 	//       "$ref": "#/definitions/generalResponse"
 
-	decoder := json.NewDecoder(request.Body)
-	var si session.SessionInfo
-	err := decoder.Decode(&si)
-	if err != nil {
-		responses.GeneralBadRequest(writer, "Decode Failed")
-		log.Error(err)
-		return
-	}
-
-	valid := session.CheckSessionID(si.Username, si.SessionID)
+	valid := true
 
 	if valid {
 		params := mux.Vars(request)
@@ -135,16 +126,7 @@ func GetUsersForPermission(writer http.ResponseWriter, request *http.Request) {
 	//     schema:
 	//       "$ref": "#/definitions/generalResponse"
 
-	decoder := json.NewDecoder(request.Body)
-	var si session.SessionInfo
-	err := decoder.Decode(&si)
-	if err != nil {
-		responses.GeneralBadRequest(writer, "Decode Failed")
-		log.Error(err)
-		return
-	}
-
-	valid := session.CheckSessionID(si.Username, si.SessionID)
+	valid := true
 
 	if valid {
 		params := mux.Vars(request)
