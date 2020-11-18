@@ -17,8 +17,8 @@ type VotesStruct struct {
 
 // swagger:model votesForCandidates
 type VotesForCandidate struct {
-	CandidateId int `json:"candidates"`
-	Votes       int `json:"votes"`
+	UserID int `json:"userID"`
+	Votes  int `json:"votes"`
 }
 
 // swagger:model votesForCandidatesList
@@ -83,11 +83,25 @@ func VoteForCandidate(writer http.ResponseWriter, request *http.Request) {
 
 		defer db.Close()
 
-		queryString := "UPDATE Candidate " +
-			"SET votes = votes + 1 " +
-			"WHERE candidate_id=?"
+		queryString := "SELECT user_id " +
+			"FROM Users " +
+			"WHERE username=?"
 
-		_, err = db.Exec(queryString, params["candidate_id"])
+		var userID int
+		err = db.QueryRow(queryString, params["username"]).Scan(&userID)
+		if err != nil {
+			responses.GeneralSystemFailure(writer, "Query Failed")
+			log.Error(err)
+			return
+		}
+
+		defer db.Close()
+
+		queryString = "UPDATE Candidate " +
+			"SET votes = votes + 1 " +
+			"WHERE user_id=?"
+
+		_, err = db.Exec(queryString, userID)
 		if err != nil {
 			responses.GeneralSystemFailure(writer, "Query Failed")
 			log.Error(err)
@@ -157,12 +171,26 @@ func GetVotesForCandidate(writer http.ResponseWriter, request *http.Request) {
 
 		defer db.Close()
 
-		queryString := "SELECT votes " +
+		queryString := "SELECT user_id " +
+			"FROM Users " +
+			"WHERE username=?"
+
+		var userID int
+		err = db.QueryRow(queryString, params["username"]).Scan(&userID)
+		if err != nil {
+			responses.GeneralSystemFailure(writer, "Query Failed")
+			log.Error(err)
+			return
+		}
+
+		defer db.Close()
+
+		queryString = "SELECT votes " +
 			"FROM Candidate " +
-			"WHERE candidate_id=?"
+			"WHERE user_id=?"
 
 		var votes int
-		err = db.QueryRow(queryString, params["candidate_id"]).Scan(&votes)
+		err = db.QueryRow(queryString, userID).Scan(&votes)
 		if err != nil {
 			responses.GeneralSystemFailure(writer, "Query Failed")
 			log.Error(err)
@@ -229,7 +257,7 @@ func GetVotesForCandidates(writer http.ResponseWriter, request *http.Request) {
 
 		defer db.Close()
 
-		queryString := "SELECT candidate_id, votes " +
+		queryString := "SELECT user_id, votes " +
 			"FROM Candidate "
 
 		rows, err := db.Query(queryString)
@@ -245,7 +273,7 @@ func GetVotesForCandidates(writer http.ResponseWriter, request *http.Request) {
 
 		for rows.Next() {
 			var c = VotesForCandidate{}
-			err = rows.Scan(&c.CandidateId, &c.Votes)
+			err = rows.Scan(&c.UserID, &c.Votes)
 
 			if err != nil {
 				responses.GeneralSystemFailure(writer, "Get Failed")

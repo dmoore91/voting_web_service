@@ -51,6 +51,9 @@ VALUES  ('al', 'password', 'axs4986@gmail.com', 'Alberto', 'Serrano', 1),
 
 INSERT INTO Party(party)
 VALUES  ('democrat'), ('republican'), ('reform'), ('libertarian'), ('socialist'), ('natural'), ('constitution'),
-        ('green'), (''), (' ');
+        ('green');
+
+INSERT INTO Candidate(user_id, party_id)
+VALUES (1, 1), (2, 1), (3, 4);
 
 COMMIT ;

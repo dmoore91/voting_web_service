@@ -11,13 +11,13 @@ import (
 
 // swagger:model sessionInfo
 type SessionInfo struct {
-	SessionID string `json:"session_id"`
+	SessionID int    `json:"session_id"`
 	Username  string `json:"username"`
 }
 
 // This function will be used by every other function to make sure that the user has the correct session_id.
 // This takes care of the authentication step in auth/auth
-func CheckSessionID(username string, sessionId string) bool {
+func CheckSessionID(username string, sessionId int) bool {
 
 	db, err := sql.Open("mysql", "root:secret@tcp(mysql_db:3306)/voting")
 	if err != nil {
@@ -30,7 +30,7 @@ func CheckSessionID(username string, sessionId string) bool {
 		"FROM Users " +
 		"WHERE username=?"
 
-	var userSessionId string
+	var userSessionId int
 	err = db.QueryRow(queryString, username).Scan(&userSessionId)
 	if err != nil {
 		return false
