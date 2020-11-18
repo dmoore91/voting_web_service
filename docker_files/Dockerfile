@@ -14,10 +14,10 @@ COPY package*.json ./
 
 # COPY go.sum go.mod /go/src/app/
 # COPY cmd internal /go/src/app/
-COPY ./ ./
+#COPY ./ ./
 
 EXPOSE 8880
 
 # Run application
-CMD ["go", "run", "cmd/data-access-api/main.go"]
+#CMD ["go", "run", "cmd/data-access-api/main.go"]
 #CMD ["/bin/bash"]

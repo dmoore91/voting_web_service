@@ -10,6 +10,9 @@ services:
         ports:
             - "8880:8880"
         tty: true
+        volumes:
+            - ./:/go/src/app/
+        command: ["go", "run", "cmd/data-access-api/main.go"]
         links:
             - "database"
         depends_on:
@@ -48,6 +51,8 @@ services:
           - ./nginx-conf:/etc/nginx/conf.d
             #- ./cert.pem:/etc/ssl/private/fullchain.pem
             #- ./key.pem:/etc/ssl/private/privkey.pem
+      links:
+          - "server"
       depends_on:
           - "server"
           - "database"
