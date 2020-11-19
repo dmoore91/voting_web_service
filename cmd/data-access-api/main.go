@@ -29,9 +29,6 @@ func main() {
 	// Initialize all Routes
 	InitializeRoutes(router, BasePath)
 
-	fileServer := http.FileServer(http.Dir("./static")) // New code
-	router.Handle("/", fileServer)                      // New code
-
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./static/")))
 
 	server := &http.Server{
