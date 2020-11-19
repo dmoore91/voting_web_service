@@ -1,10 +1,8 @@
 package main
 
 import (
-	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
-	"github.com/kabukky/httpscerts"
 	"github.com/sirupsen/logrus"
 	"net/http"
 	"strings"
@@ -31,29 +29,10 @@ func main() {
 	// Initialize all Routes
 	InitializeRoutes(router, BasePath)
 
-	// Connect to mysql server
-	db, err := sql.Open("mysql", "root:root@tcp(localhost:3306)/voting")
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer db.Close()
-
 	fileServer := http.FileServer(http.Dir("./static")) // New code
 	router.Handle("/", fileServer)                      // New code
 
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./static/")))
-
-	// Check if the cert files are available.
-	err = httpscerts.Check("cert.pem", "key.pem")
-	// If they are not available, generate new ones.
-	if err != nil {
-		err = httpscerts.Generate("cert.pem", "key.pem", "127.0.0.1:8081")
-		if err != nil {
-			log.Fatal("Error: Couldn't create https certs.")
-		}
-	}
 
 	server := &http.Server{
 		Addr:           ":8880",

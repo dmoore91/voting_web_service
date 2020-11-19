@@ -32,7 +32,7 @@ services:
             - ./init_db.sql:/docker-entrypoint-initdb.d/init.sql
 #            - ./mysql_data/:/var/lib/mysql
         environment:
-            MYSQL_ROOT_PASSWORD: secret
+            MYSQL_ROOT_PASSWORD: VV@WF9Xf8C6!#Xy!
             MYSQL_DATABASE: voting
             MYSQL_USER: bob
             MYSQL_PASSWORD: secret
