@@ -123,7 +123,9 @@ func Validate(writer http.ResponseWriter, request *http.Request) {
 		fmt.Println(v.Token)
 
 		out, err := exec.Command("/bin/bash", "internal/app/tfa/validate.sh '"+secret+"' '"+v.Token+"'").
+		out, err := exec.Command("./internal/app/tfa/validate.sh", secret, v.Token).
 			Output()
+		fmt.Println("output", string(out))
 		if err != nil {
 			responses.GeneralBadRequest(writer, "Validation Script Failed")
 			log.Error(err)
