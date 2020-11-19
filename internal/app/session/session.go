@@ -5,39 +5,74 @@ import (
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 	"net/http"
+	"strconv"
 	"voting_web_service/internal/app/responses"
 )
 
-// swagger:model sessionInfo
-type SessionInfo struct {
-	SessionID int    `json:"session_id"`
-	Username  string `json:"username"`
-}
+func VerifySessionID(writer http.ResponseWriter, request *http.Request) {
+	// GET /session/{username}/{session_id}
+	//
+	// Verifies session_id matches what we have in database
+	//
+	// ---
+	// produces:
+	// - application/json
+	//  parameters:
+	//	- name: username
+	//	  in: query
+	//	  description: name of user that has token
+	//	  type: string
+	//	  required: true
+	//	- name: session_id
+	//	  in: query
+	//	  description: session_id we're checking
+	//	  type: string
+	//	  required: true
+	// responses:
+	//   '200':
+	//     description: Session ID matches
+	//     schema:
+	//       "$ref": "#/definitions/generalResponse"
+	//   '400':
+	//     description: Session ID doesn't match
+	//     schema:
+	//       "$ref": "#/definitions/generalResponse"
+	//   '500':
+	//     description: server error
+	//     schema:
+	//       "$ref": "#/definitions/generalResponse"
 
-// This function will be used by every other function to make sure that the user has the correct session_id.
-// This takes care of the authentication step in auth/auth
-func CheckSessionID(username string, sessionId int) bool {
+	params := mux.Vars(request)
 
-	return true
+	db, err := sql.Open("mysql", "root:VV@WF9Xf8C6!#Xy!@tcp(mysql_db:3306)/voting")
+	if err != nil {
+		responses.GeneralSystemFailure(writer, "Failed to connect to db")
+	}
 
-	//db, err := sql.Open("mysql", "root:VV@WF9Xf8C6!#Xy!@tcp(mysql_db:3306)/voting")
-	//if err != nil {
-	//	return false
-	//}
-	//
-	//defer db.Close()
-	//
-	//queryString := "SELECT session " +
-	//	"FROM Users " +
-	//	"WHERE username=?"
-	//
-	//var userSessionId int
-	//err = db.QueryRow(queryString, username).Scan(&userSessionId)
-	//if err != nil {
-	//	return false
-	//}
-	//
-	//return userSessionId == sessionId
+	defer db.Close()
+
+	queryString := "SELECT session " +
+		"FROM Users " +
+		"WHERE username=?"
+
+	var userSessionId int
+	err = db.QueryRow(queryString, params["username"]).Scan(&userSessionId)
+	if err != nil {
+		responses.GeneralSystemFailure(writer, "Failed to get session id for user")
+	}
+
+	i, err := strconv.Atoi(params["session_id"])
+	if err != nil {
+		responses.GeneralSystemFailure(writer, "Failed to convert string to int")
+	}
+
+	equal := userSessionId == i
+
+	if equal {
+		responses.GeneralSuccess(writer, "Session IDs match")
+	} else {
+		responses.GeneralBadRequest(writer, "Session IDs don't match")
+	}
 }
 
 func SetSessionIdNull(writer http.ResponseWriter, request *http.Request) {
