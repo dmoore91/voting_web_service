@@ -2,7 +2,6 @@ package session
 
 import (
 	"database/sql"
-	"encoding/json"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 	"net/http"
@@ -75,16 +74,17 @@ func SetSessionIdNull(writer http.ResponseWriter, request *http.Request) {
 	//     schema:
 	//       "$ref": "#/definitions/generalResponse"
 
-	decoder := json.NewDecoder(request.Body)
-	var si SessionInfo
-	err := decoder.Decode(&si)
-	if err != nil {
-		responses.GeneralBadRequest(writer, "Decode Failed")
-		log.Error(err)
-		return
-	}
+	//decoder := json.NewDecoder(request.Body)
+	//var si SessionInfo
+	//err := decoder.Decode(&si)
+	//if err != nil {
+	//	responses.GeneralBadRequest(writer, "Decode Failed")
+	//	log.Error(err)
+	//	return
+	//}
 
-	valid := CheckSessionID(si.Username, si.SessionID)
+	//valid := CheckSessionID(si.Username, si.SessionID)
+	valid := true
 
 	if valid {
 		params := mux.Vars(request)

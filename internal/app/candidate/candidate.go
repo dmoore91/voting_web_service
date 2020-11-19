@@ -7,8 +7,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"voting_web_service/internal/app/responses"
-	"voting_web_service/internal/app/session"
-	"voting_web_service/internal/app/users"
 )
 
 func CreateCandidate(writer http.ResponseWriter, request *http.Request) {
@@ -51,16 +49,17 @@ func CreateCandidate(writer http.ResponseWriter, request *http.Request) {
 	//       "$ref": "#/definitions/generalResponse"
 	params := mux.Vars(request)
 
-	decoder := json.NewDecoder(request.Body)
-	var lc users.LoginCreds
-	err := decoder.Decode(&lc)
-	if err != nil {
-		responses.GeneralBadRequest(writer, "Decode Failed")
-		log.Error(err)
-		return
-	}
+	//decoder := json.NewDecoder(request.Body)
+	//	var lc users.LoginCreds
+	//	err := decoder.Decode(&lc)
+	//	if err != nil {
+	//		responses.GeneralBadRequest(writer, "Decode Failed")
+	//		log.Error(err)
+	//		return
+	//	}
 
-	valid := session.CheckSessionID(lc.SessionCreds.Username, lc.SessionCreds.SessionID)
+	////valid := session.CheckSessionID(lc.SessionCreds.Username, lc.SessionCreds.SessionID)
+	valid := true
 
 	if valid {
 		db, err := sql.Open("mysql", "root:VV@WF9Xf8C6!#Xy!@tcp(mysql_db:3306)/voting")
@@ -141,16 +140,17 @@ func GetCandidates(writer http.ResponseWriter, request *http.Request) {
 	//     schema:
 	//       "$ref": "#/definitions/generalResponse"
 
-	decoder := json.NewDecoder(request.Body)
-	var lc users.LoginCreds
-	err := decoder.Decode(&lc)
-	if err != nil {
-		responses.GeneralBadRequest(writer, "Decode Failed")
-		log.Error(err)
-		return
-	}
+	//decoder := json.NewDecoder(request.Body)
+	//	var lc users.LoginCreds
+	//	err := decoder.Decode(&lc)
+	//	if err != nil {
+	//		responses.GeneralBadRequest(writer, "Decode Failed")
+	//		log.Error(err)
+	//		return
+	//	}
 
-	valid := session.CheckSessionID(lc.SessionCreds.Username, lc.SessionCreds.SessionID)
+	//valid := session.CheckSessionID(lc.SessionCreds.Username, lc.SessionCreds.SessionID)
+	valid := true
 
 	if valid {
 
@@ -238,16 +238,17 @@ func GetCandidate(writer http.ResponseWriter, request *http.Request) {
 
 	params := mux.Vars(request)
 
-	decoder := json.NewDecoder(request.Body)
-	var lc users.LoginCreds
-	err := decoder.Decode(&lc)
-	if err != nil {
-		responses.GeneralBadRequest(writer, "Decode Failed")
-		log.Error(err)
-		return
-	}
+	//decoder := json.NewDecoder(request.Body)
+	//	var lc users.LoginCreds
+	//	err := decoder.Decode(&lc)
+	//	if err != nil {
+	//		responses.GeneralBadRequest(writer, "Decode Failed")
+	//		log.Error(err)
+	//		return
+	//	}
 
-	valid := session.CheckSessionID(lc.SessionCreds.Username, lc.SessionCreds.SessionID)
+	//valid := session.CheckSessionID(lc.SessionCreds.Username, lc.SessionCreds.SessionID)
+	valid := true
 
 	if valid {
 

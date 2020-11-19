@@ -50,16 +50,17 @@ func AddPermission(writer http.ResponseWriter, request *http.Request) {
 	//     schema:
 	//       "$ref": "#/definitions/generalResponse"
 
-	decoder := json.NewDecoder(request.Body)
-	var lc users.LoginCreds
-	err := decoder.Decode(&lc)
-	if err != nil {
-		responses.GeneralBadRequest(writer, "Decode Failed")
-		log.Error(err)
-		return
-	}
+	//decoder := json.NewDecoder(request.Body)
+	//	var lc users.LoginCreds
+	//	err := decoder.Decode(&lc)
+	//	if err != nil {
+	//		responses.GeneralBadRequest(writer, "Decode Failed")
+	//		log.Error(err)
+	//		return
+	//	}
 
-	valid := session.CheckSessionID(lc.SessionCreds.Username, lc.SessionCreds.SessionID)
+	//valid := session.CheckSessionID(lc.SessionCreds.Username, lc.SessionCreds.SessionID)
+	valid := true
 
 	if valid {
 		params := mux.Vars(request)
@@ -136,16 +137,17 @@ func GetUsersForPermission(writer http.ResponseWriter, request *http.Request) {
 	//     schema:
 	//       "$ref": "#/definitions/generalResponse"
 
-	decoder := json.NewDecoder(request.Body)
-	var lc users.LoginCreds
-	err := decoder.Decode(&lc)
-	if err != nil {
-		responses.GeneralBadRequest(writer, "Decode Failed")
-		log.Error(err)
-		return
-	}
+	//decoder := json.NewDecoder(request.Body)
+	//	var lc users.LoginCreds
+	//	err := decoder.Decode(&lc)
+	//	if err != nil {
+	//		responses.GeneralBadRequest(writer, "Decode Failed")
+	//		log.Error(err)
+	//		return
+	//	}
 
-	valid := session.CheckSessionID(lc.SessionCreds.Username, lc.SessionCreds.SessionID)
+	//valid := session.CheckSessionID(lc.SessionCreds.Username, lc.SessionCreds.SessionID)
+	valid := true
 
 	if valid {
 		params := mux.Vars(request)
