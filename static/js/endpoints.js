@@ -143,8 +143,10 @@ function getCandidateVotes() {
                 for (var i = 0; i < data['candidates'].length; i++) {
                     $('.result').append(
                         data['candidates'][i].first_name + ' '
-                    ).append(data['candidates'][i].last_name + ' ').append(data['candidates'][i].votes)
-                        .append('<br>')
+                    ).append(data['candidates'][i].last_name + ' Count: '
+                    ).append(data['candidates'][i].votes
+                    ).append(' Party: ' + data['candidates'][i].party
+                    ).append('<br>')
                 }
             }
         }
