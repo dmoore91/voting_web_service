@@ -84,3 +84,65 @@ function validate2FA() {
         }
     });
 }
+
+/**
+ * Gets the candidates
+ */
+function getCandidates() {
+    $.ajax({
+        type: 'GET',
+        url: "https://localhost:8880/voting/candidate",
+        statusCode: {
+            200: function(data) {
+                for (var i = 0; i < data['candidates'].length; i++) {
+                    console.log('candidates', data['candidates'][i])
+                    var elem = data['candidates'][i];
+                    console.log(elem)
+                    $('#candidates').append(
+                        $('<input>').prop({
+                            class: 'mr-2',
+                            type: 'radio',
+                            id: elem['username'],
+                            name: elem['party'],
+                            party: elem['party']
+                        })
+                    ).append(
+                        $('<label>').prop({
+                            for: elem['party']
+                        }).html('Candidate: ' + elem['first_name'] + ' ' +  elem['last_name'] +' Party: ' + elem['party'])
+                    ).append('<br>');
+                }
+                $('#candidates').append('<button type="submit" value="Submit" class="signupbtn">Submit Candidate</button>')
+            }
+        }
+    });
+}
+
+function postCandidate() {
+    var radios = document.getElementsByClassName('cand');
+
+    for (var i = 0, length = radios.length; i < length; i++) {
+        if (radios[i].checked) {
+            var username = $(radios[i]).attr('id');
+
+            $.ajax({
+                type: 'POST',
+                dataType: "text",
+                url: "https://localhost:8880/voting/" + username
+            });
+        }
+    }
+
+    // TODO verify this
+    $.ajax({
+        type: 'GET',
+        dataType: "text",
+        url: "https://localhost:8880/voting",
+        statusCode: {
+            200: function (data) {
+                debugger;
+                console.log('daata', data);
+            }
+        }
+    });
+}
