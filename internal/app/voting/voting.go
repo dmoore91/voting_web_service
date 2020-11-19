@@ -41,12 +41,6 @@ func VoteForCandidate(writer http.ResponseWriter, request *http.Request) {
 	//	  description: id for candidate that's being voted for
 	//	  type: string
 	//	  required: true
-	//	 - name: session_info
-	//	   in: body
-	//	   description: session info
-	//	   schema:
-	//	     "$ref": "#/definitions/sessionInfo"
-	//	   required: true
 	// responses:
 	//   '200':
 	//     description: Vote counted for candidate
@@ -61,59 +55,43 @@ func VoteForCandidate(writer http.ResponseWriter, request *http.Request) {
 	//     schema:
 	//       "$ref": "#/definitions/generalResponse"
 
-	//decoder := json.NewDecoder(request.Body)
-	//	var lc users.LoginCreds
-	//	err := decoder.Decode(&lc)
-	//	if err != nil {
-	//		responses.GeneralBadRequest(writer, "Decode Failed")
-	//		log.Error(err)
-	//		return
-	//	}
+	params := mux.Vars(request)
 
-	//valid := session.CheckSessionID(lc.SessionCreds.Username, lc.SessionCreds.SessionID)
-	valid := true
-
-	if valid {
-		params := mux.Vars(request)
-
-		db, err := sql.Open("mysql", "root:VV@WF9Xf8C6!#Xy!@tcp(mysql_db:3306)/voting")
-		if err != nil {
-			responses.GeneralSystemFailure(writer, "Cannot connect to db")
-			log.Error(err)
-			return
-		}
-
-		defer db.Close()
-
-		queryString := "SELECT user_id " +
-			"FROM Users " +
-			"WHERE username=?"
-
-		var userID int
-		err = db.QueryRow(queryString, params["username"]).Scan(&userID)
-		if err != nil {
-			responses.GeneralSystemFailure(writer, "Query Failed")
-			log.Error(err)
-			return
-		}
-
-		defer db.Close()
-
-		queryString = "UPDATE Candidate " +
-			"SET votes = votes + 1 " +
-			"WHERE user_id=?"
-
-		_, err = db.Exec(queryString, userID)
-		if err != nil {
-			responses.GeneralSystemFailure(writer, "Query Failed")
-			log.Error(err)
-			return
-		}
-
-		responses.GeneralSuccess(writer, "Success")
-	} else {
-		responses.GeneralBadRequest(writer, "Bad Session Token")
+	db, err := sql.Open("mysql", "root:VV@WF9Xf8C6!#Xy!@tcp(mysql_db:3306)/voting")
+	if err != nil {
+		responses.GeneralSystemFailure(writer, "Cannot connect to db")
+		log.Error(err)
+		return
 	}
+
+	defer db.Close()
+
+	queryString := "SELECT user_id " +
+		"FROM Users " +
+		"WHERE username=?"
+
+	var userID int
+	err = db.QueryRow(queryString, params["username"]).Scan(&userID)
+	if err != nil {
+		responses.GeneralSystemFailure(writer, "Query Failed")
+		log.Error(err)
+		return
+	}
+
+	defer db.Close()
+
+	queryString = "UPDATE Candidate " +
+		"SET votes = votes + 1 " +
+		"WHERE user_id=?"
+
+	_, err = db.Exec(queryString, userID)
+	if err != nil {
+		responses.GeneralSystemFailure(writer, "Query Failed")
+		log.Error(err)
+		return
+	}
+
+	responses.GeneralSuccess(writer, "Success")
 }
 
 func GetVotesForCandidate(writer http.ResponseWriter, request *http.Request) {
@@ -130,12 +108,6 @@ func GetVotesForCandidate(writer http.ResponseWriter, request *http.Request) {
 	//	  description: id for candidate to get votes for
 	//	  type: string
 	//	  required: true
-	//	 - name: session_info
-	//	   in: body
-	//	   description: session info
-	//	   schema:
-	//	     "$ref": "#/definitions/sessionInfo"
-	//	   required: true
 	// responses:
 	//   '200':
 	//     description: Number of votes for candidate
@@ -150,64 +122,48 @@ func GetVotesForCandidate(writer http.ResponseWriter, request *http.Request) {
 	//     schema:
 	//       "$ref": "#/definitions/generalResponse"
 
-	//decoder := json.NewDecoder(request.Body)
-	//	var lc users.LoginCreds
-	//	err := decoder.Decode(&lc)
-	//	if err != nil {
-	//		responses.GeneralBadRequest(writer, "Decode Failed")
-	//		log.Error(err)
-	//		return
-	//	}
+	params := mux.Vars(request)
 
-	//valid := session.CheckSessionID(lc.SessionCreds.Username, lc.SessionCreds.SessionID)
-	valid := true
-
-	if valid {
-		params := mux.Vars(request)
-
-		db, err := sql.Open("mysql", "root:VV@WF9Xf8C6!#Xy!@tcp(mysql_db:3306)/voting")
-		if err != nil {
-			responses.GeneralSystemFailure(writer, "Cannot connect to db")
-			log.Error(err)
-			return
-		}
-
-		defer db.Close()
-
-		queryString := "SELECT user_id " +
-			"FROM Users " +
-			"WHERE username=?"
-
-		var userID int
-		err = db.QueryRow(queryString, params["username"]).Scan(&userID)
-		if err != nil {
-			responses.GeneralSystemFailure(writer, "Query Failed")
-			log.Error(err)
-			return
-		}
-
-		defer db.Close()
-
-		queryString = "SELECT votes " +
-			"FROM Candidate " +
-			"WHERE user_id=?"
-
-		var votes int
-		err = db.QueryRow(queryString, userID).Scan(&votes)
-		if err != nil {
-			responses.GeneralSystemFailure(writer, "Query Failed")
-			log.Error(err)
-			return
-		}
-
-		resp := VotesStruct{Votes: votes}
-
-		writer.Header().Set("Content-Type", "application/json")
-		writer.WriteHeader(200)
-		_ = json.NewEncoder(writer).Encode(resp)
-	} else {
-		responses.GeneralBadRequest(writer, "Bad Session Token")
+	db, err := sql.Open("mysql", "root:VV@WF9Xf8C6!#Xy!@tcp(mysql_db:3306)/voting")
+	if err != nil {
+		responses.GeneralSystemFailure(writer, "Cannot connect to db")
+		log.Error(err)
+		return
 	}
+
+	defer db.Close()
+
+	queryString := "SELECT user_id " +
+		"FROM Users " +
+		"WHERE username=?"
+
+	var userID int
+	err = db.QueryRow(queryString, params["username"]).Scan(&userID)
+	if err != nil {
+		responses.GeneralSystemFailure(writer, "Query Failed")
+		log.Error(err)
+		return
+	}
+
+	defer db.Close()
+
+	queryString = "SELECT votes " +
+		"FROM Candidate " +
+		"WHERE user_id=?"
+
+	var votes int
+	err = db.QueryRow(queryString, userID).Scan(&votes)
+	if err != nil {
+		responses.GeneralSystemFailure(writer, "Query Failed")
+		log.Error(err)
+		return
+	}
+
+	resp := VotesStruct{Votes: votes}
+
+	writer.Header().Set("Content-Type", "application/json")
+	writer.WriteHeader(200)
+	_ = json.NewEncoder(writer).Encode(resp)
 }
 
 func GetVotesForCandidates(writer http.ResponseWriter, request *http.Request) {
@@ -218,13 +174,6 @@ func GetVotesForCandidates(writer http.ResponseWriter, request *http.Request) {
 	// ---
 	// produces:
 	// - application/json
-	//  parameters:
-	//	 - name: session_info
-	//	   in: body
-	//	   description: session info
-	//	   schema:
-	//	     "$ref": "#/definitions/sessionInfo"
-	//	   required: true
 	// responses:
 	//   '200':
 	//     description: Got votes for candidates
@@ -239,63 +188,47 @@ func GetVotesForCandidates(writer http.ResponseWriter, request *http.Request) {
 	//     schema:
 	//       "$ref": "#/definitions/generalResponse"
 
-	//decoder := json.NewDecoder(request.Body)
-	//	var lc users.LoginCreds
-	//	err := decoder.Decode(&lc)
-	//	if err != nil {
-	//		responses.GeneralBadRequest(writer, "Decode Failed")
-	//		log.Error(err)
-	//		return
-	//	}
-
-	//valid := session.CheckSessionID(lc.SessionCreds.Username, lc.SessionCreds.SessionID)
-	valid := true
-
-	if valid {
-		db, err := sql.Open("mysql", "root:VV@WF9Xf8C6!#Xy!@tcp(mysql_db:3306)/voting")
-		if err != nil {
-			responses.GeneralSystemFailure(writer, "Cannot connect to db")
-			log.Error(err)
-			return
-		}
-
-		defer db.Close()
-
-		queryString := "SELECT first_name, last_name, party, votes " +
-			"FROM Candidate " +
-			"INNER JOIN Users ON Users.user_id = Candidate.user_id " +
-			"INNER JOIN Party ON Party.party_id = Candidate.party_id"
-
-		rows, err := db.Query(queryString)
-		if err != nil {
-			responses.GeneralSystemFailure(writer, "Failed query")
-			log.Error(err)
-			return
-		}
-
-		var candidates []VotesForCandidate
-
-		defer rows.Close()
-
-		for rows.Next() {
-			var c = VotesForCandidate{}
-			err = rows.Scan(&c.FirstName, &c.LastName, &c.Party, &c.Votes)
-
-			if err != nil {
-				responses.GeneralSystemFailure(writer, "Get Failed")
-				log.Error(err)
-				return
-			}
-
-			candidates = append(candidates, c)
-		}
-
-		resp := VotesForCandidateList{Candidates: candidates}
-
-		writer.Header().Set("Content-Type", "application/json")
-		writer.WriteHeader(200)
-		_ = json.NewEncoder(writer).Encode(resp)
-	} else {
-		responses.GeneralBadRequest(writer, "Bad Session Token")
+	db, err := sql.Open("mysql", "root:VV@WF9Xf8C6!#Xy!@tcp(mysql_db:3306)/voting")
+	if err != nil {
+		responses.GeneralSystemFailure(writer, "Cannot connect to db")
+		log.Error(err)
+		return
 	}
+
+	defer db.Close()
+
+	queryString := "SELECT first_name, last_name, party, votes " +
+		"FROM Candidate " +
+		"INNER JOIN Users ON Users.user_id = Candidate.user_id " +
+		"INNER JOIN Party ON Party.party_id = Candidate.party_id"
+
+	rows, err := db.Query(queryString)
+	if err != nil {
+		responses.GeneralSystemFailure(writer, "Failed query")
+		log.Error(err)
+		return
+	}
+
+	var candidates []VotesForCandidate
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var c = VotesForCandidate{}
+		err = rows.Scan(&c.FirstName, &c.LastName, &c.Party, &c.Votes)
+
+		if err != nil {
+			responses.GeneralSystemFailure(writer, "Get Failed")
+			log.Error(err)
+			return
+		}
+
+		candidates = append(candidates, c)
+	}
+
+	resp := VotesForCandidateList{Candidates: candidates}
+
+	writer.Header().Set("Content-Type", "application/json")
+	writer.WriteHeader(200)
+	_ = json.NewEncoder(writer).Encode(resp)
 }
