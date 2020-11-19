@@ -7,7 +7,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"voting_web_service/internal/app/responses"
-	"voting_web_service/internal/app/session"
 
 	"voting_web_service/internal/app/users"
 )
