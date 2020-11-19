@@ -57,6 +57,7 @@ function signup() {
         url: "https://localhost:8880/voting/user",
         statusCode: {
             200: function() {
+                console.log('hits this')
                 window.location.href = './tfa.html';
             }
         }
