@@ -34,8 +34,6 @@ services:
         environment:
             MYSQL_ROOT_PASSWORD: VV@WF9Xf8C6!#Xy!
             MYSQL_DATABASE: voting
-            MYSQL_USER: bob
-            MYSQL_PASSWORD: secret
         tty: true
         networks:
             - vote_net
