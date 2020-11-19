@@ -45,15 +45,15 @@ COMMIT ;
 BEGIN ;
 
 INSERT INTO Users(username, hashed_password, email, first_name, last_name, party_id)
-VALUES  ('al', 'password', 'axs4986@gmail.com', 'Alberto', 'Serrano', 1),
-        ('jam', 'password', 'jxa7578@rit.edu', 'Jahongir', 'Amirkulov', 1),
-        ('dan', 'password', 'dxm9604@rit.edu', 'Daniel', 'Moore', 1);
+VALUES  ('al', 'password', 'axs4986@gmail.com', 'Bernie', 'Sanders', 4),
+        ('jam', 'password', 'jxa7578@rit.edu', 'Donald', 'Trump', 2),
+        ('dan', 'password', 'dxm9604@rit.edu', 'Barack', 'Obama', 1);
 
 INSERT INTO Party(party)
 VALUES  ('democrat'), ('republican'), ('reform'), ('libertarian'), ('socialist'), ('natural'), ('constitution'),
         ('green');
 
 INSERT INTO Candidate(user_id, party_id)
-VALUES (1, 1), (2, 1), (3, 4);
+VALUES (1, 5), (2, 2), (3, 1);
 
-COMMIT ;
+COMMIT;
