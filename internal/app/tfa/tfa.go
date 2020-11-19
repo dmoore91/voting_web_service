@@ -132,6 +132,32 @@ func Validate(writer http.ResponseWriter, request *http.Request) {
 		}
 
 		if outStr == "true" {
+
+			db, err := sql.Open("mysql", "root:VV@WF9Xf8C6!#Xy!@tcp(mysql_db:3306)/voting")
+			if err != nil {
+				responses.GeneralSystemFailure(writer, "Failed to connect to db")
+			}
+
+			defer db.Close()
+
+			queryString := "UPDATE Users " +
+				"SET session=? " +
+				"WHERE username=?"
+
+			result, err := db.Exec(queryString, v.Token, v.Username)
+			if err != nil {
+				responses.GeneralSystemFailure(writer, "Failed to add session id for user")
+			}
+
+			rowsAffected, err := result.RowsAffected()
+			if err != nil {
+				responses.GeneralSystemFailure(writer, "Failed to add session id for user")
+			}
+
+			if rowsAffected == 0 {
+				responses.GeneralSystemFailure(writer, "Failed to add session id for user")
+			}
+
 			fmt.Println("Success")
 			responses.GeneralSuccess(writer, "Success")
 		} else {
