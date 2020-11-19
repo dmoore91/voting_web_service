@@ -18,8 +18,10 @@ type VotesStruct struct {
 
 // swagger:model votesForCandidates
 type VotesForCandidate struct {
-	UserID int `json:"userID"`
-	Votes  int `json:"votes"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Party     string `json:"party"`
+	Votes     int    `json:"votes"`
 }
 
 // swagger:model votesForCandidatesList
@@ -258,8 +260,10 @@ func GetVotesForCandidates(writer http.ResponseWriter, request *http.Request) {
 
 		defer db.Close()
 
-		queryString := "SELECT user_id, votes " +
-			"FROM Candidate "
+		queryString := "SELECT first_name, last_name, party, votes " +
+			"FROM Candidate " +
+			"INNER JOIN Users ON Users.user_id = Candidate.user_id " +
+			"INNER JOIN Party ON Party.party_id = Candidate.party_id"
 
 		rows, err := db.Query(queryString)
 		if err != nil {
@@ -274,7 +278,7 @@ func GetVotesForCandidates(writer http.ResponseWriter, request *http.Request) {
 
 		for rows.Next() {
 			var c = VotesForCandidate{}
-			err = rows.Scan(&c.UserID, &c.Votes)
+			err = rows.Scan(&c.FirstName, &c.LastName, &c.Party, &c.Votes)
 
 			if err != nil {
 				responses.GeneralSystemFailure(writer, "Get Failed")
