@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"os"
@@ -117,6 +118,10 @@ func Validate(writer http.ResponseWriter, request *http.Request) {
 
 	secret, legit := getSecretForUser(writer, v.Username)
 	if legit {
+
+		fmt.Println(secret)
+		fmt.Println(v.Token)
+
 		out, err := exec.Command("/bin/bash", "internal/app/tfa/validate.sh '"+secret+"' '"+v.Token+"'").
 			Output()
 		if err != nil {
