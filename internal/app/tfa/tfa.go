@@ -119,22 +119,23 @@ func Validate(writer http.ResponseWriter, request *http.Request) {
 	secret, legit := getSecretForUser(writer, v.Username)
 	if legit {
 
-		fmt.Println(secret)
-		fmt.Println(v.Token)
-
 		out, err := exec.Command("./internal/app/tfa/validate.sh", secret, v.Token).
 			Output()
 
-		fmt.Println("output", string(out))
+		outStr := strings.Replace(string(out), "\n", "", -1) // Remove newline
+		outStr = strings.TrimSpace(outStr)
+
 		if err != nil {
 			responses.GeneralBadRequest(writer, "Validation Script Failed")
 			log.Error(err)
 			return
 		}
 
-		if strings.EqualFold(string(out), "true") {
+		if outStr == "true" {
+			fmt.Println("Success")
 			responses.GeneralSuccess(writer, "Success")
 		} else {
+			fmt.Println("Not success")
 			responses.GeneralBadRequest(writer, "Token invalid")
 		}
 	} else {

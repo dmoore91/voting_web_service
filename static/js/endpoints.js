@@ -57,7 +57,6 @@ function signup() {
         url: "https://localhost:8880/voting/user",
         statusCode: {
             200: function() {
-                console.log('hits this')
                 window.location.href = './tfa.html';
             }
         }
@@ -80,8 +79,10 @@ function validate2FA() {
         data: JSON.stringify(formData),
         dataType: "text",
         url: "https://localhost:8880/voting/tfa_validate",
-        success:  function() {
-            window.location.href = './dashboard.html';
+        statusCode: {
+            200: function() {
+                window.location.href = './dashboard.html';
+            }
         }
     });
 }
