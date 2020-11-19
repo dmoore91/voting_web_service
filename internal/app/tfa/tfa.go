@@ -56,7 +56,7 @@ func GetTfa(writer http.ResponseWriter, request *http.Request) {
 
 func getSecretForUser(writer http.ResponseWriter, username string) (string, bool) {
 
-	db, err := sql.Open("mysql", "root:secret@tcp(mysql_db:3306)/voting")
+	db, err := sql.Open("mysql", "root:VV@WF9Xf8C6!#Xy!@tcp(mysql_db:3306)/voting")
 	if err != nil {
 		responses.GeneralSystemFailure(writer, "Cannot connect to db")
 		log.Error(err)

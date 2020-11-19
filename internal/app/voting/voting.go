@@ -64,7 +64,7 @@ func VoteForCandidate(writer http.ResponseWriter, request *http.Request) {
 	if valid {
 		params := mux.Vars(request)
 
-		db, err := sql.Open("mysql", "root:secret@tcp(mysql_db:3306)/voting")
+		db, err := sql.Open("mysql", "root:VV@WF9Xf8C6!#Xy!@tcp(mysql_db:3306)/voting")
 		if err != nil {
 			responses.GeneralSystemFailure(writer, "Cannot connect to db")
 			log.Error(err)
@@ -143,7 +143,7 @@ func GetVotesForCandidate(writer http.ResponseWriter, request *http.Request) {
 	if valid {
 		params := mux.Vars(request)
 
-		db, err := sql.Open("mysql", "root:secret@tcp(mysql_db:3306)/voting")
+		db, err := sql.Open("mysql", "root:VV@WF9Xf8C6!#Xy!@tcp(mysql_db:3306)/voting")
 		if err != nil {
 			responses.GeneralSystemFailure(writer, "Cannot connect to db")
 			log.Error(err)
@@ -220,7 +220,7 @@ func GetVotesForCandidates(writer http.ResponseWriter, request *http.Request) {
 	valid := true
 
 	if valid {
-		db, err := sql.Open("mysql", "root:secret@tcp(mysql_db:3306)/voting")
+		db, err := sql.Open("mysql", "root:VV@WF9Xf8C6!#Xy!@tcp(mysql_db:3306)/voting")
 		if err != nil {
 			responses.GeneralSystemFailure(writer, "Cannot connect to db")
 			log.Error(err)
