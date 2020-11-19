@@ -10,7 +10,6 @@ import (
 	"os/exec"
 	"strings"
 	"voting_web_service/internal/app/responses"
-	"voting_web_service/internal/app/session"
 )
 
 type TFA struct {
@@ -20,9 +19,8 @@ type TFA struct {
 
 // swagger:model validationInput
 type ValidateStruct struct {
-	SessionInfo session.SessionInfo `json:"session_info"`
-	Token       string              `json:"token"`
-	Username    string              `json:"username"`
+	Token    string `json:"token"`
+	Username string `json:"username"`
 }
 
 func GetTfa(writer http.ResponseWriter, request *http.Request) {
@@ -117,28 +115,22 @@ func Validate(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	valid := session.CheckSessionID(v.SessionInfo.Username, v.SessionInfo.SessionID)
+	secret, legit := getSecretForUser(writer, v.Username)
+	if legit {
+		out, err := exec.Command("/bin/bash", "internal/app/tfa/validate.sh "+secret+" "+v.Token).
+			Output()
+		if err != nil {
+			responses.GeneralBadRequest(writer, "Validation Script Failed")
+			log.Error(err)
+			return
+		}
 
-	if valid {
-		secret, legit := getSecretForUser(writer, v.Username)
-		if legit {
-			out, err := exec.Command("/bin/bash", "internal/app/tfa/validate.sh "+secret+" "+v.Token).
-				Output()
-			if err != nil {
-				responses.GeneralBadRequest(writer, "Validation Script Failed")
-				log.Error(err)
-				return
-			}
-
-			if strings.EqualFold(string(out), "true") {
-				responses.GeneralSuccess(writer, "Success")
-			} else {
-				responses.GeneralBadRequest(writer, "Token invalid")
-			}
+		if strings.EqualFold(string(out), "true") {
+			responses.GeneralSuccess(writer, "Success")
 		} else {
-			responses.GeneralSystemFailure(writer, "Failed to get user secret")
+			responses.GeneralBadRequest(writer, "Token invalid")
 		}
 	} else {
-		responses.GeneralBadRequest(writer, "Bad Session Token")
+		responses.GeneralSystemFailure(writer, "Failed to get user secret")
 	}
 }
