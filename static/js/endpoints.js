@@ -50,15 +50,15 @@ function signup() {
     storage['secret_key'] = secret;
     formData['secret_key'] = secret;
 
-    JSON.stringify(formData);
-
     $.ajax({
         type: 'POST',
         data: JSON.stringify(formData),
         dataType: "text",
         url: "https://localhost:8880/voting/user",
-        success:  function() {
-            window.location.href = './tfa.html';
+        statusCode: {
+            200: function() {
+                window.location.href = './tfa.html';
+            }
         }
     });
 }
@@ -94,13 +94,14 @@ function getCandidates() {
         url: "https://localhost:8880/voting/candidate",
         statusCode: {
             200: function(data) {
+                localStorage = window.localStorage;
+                localStorage.setItem('candidates', data);
                 for (var i = 0; i < data['candidates'].length; i++) {
-                    console.log('candidates', data['candidates'][i])
                     var elem = data['candidates'][i];
                     console.log(elem)
                     $('#candidates').append(
                         $('<input>').prop({
-                            class: 'mr-2',
+                            class: 'cand mr-2',
                             type: 'radio',
                             id: elem['username'],
                             name: elem['party'],
@@ -128,20 +129,38 @@ function postCandidate() {
             $.ajax({
                 type: 'POST',
                 dataType: "text",
-                url: "https://localhost:8880/voting/" + username
+                url: "https://localhost:8880/voting/vote/" + username
             });
         }
     }
+}
 
-    // TODO verify this
+
+function getCandidateInfo(candidateId) {
+    var candidateInfo = window.localStorage.getItem('candidates');
+    for (var i = 0, length = candidateInfo.length; i < length; i++) {
+        if (candidateInfo[i]['candidateId'] === candidateId) {
+            return candidateInfo[i];
+        }
+    }
+}
+
+function getCandidateVotes() {
     $.ajax({
         type: 'GET',
         dataType: "text",
-        url: "https://localhost:8880/voting",
+        url: "https://localhost:8880/voting/vote",
         statusCode: {
             200: function (data) {
-                debugger;
-                console.log('daata', data);
+                console.log('getCandidateVotes', data);
+                var candidates = data['candidates'];
+
+                for (var i = 0, length = candidates.length; i < length; i++) {
+                    var userId = candidates[i]['userID'];
+                    var votes = candidates[i]['votes'];
+
+
+                }
             }
         }
     });

@@ -4,28 +4,16 @@
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
     <script type="text/javascript" src="js/endpoints.js"></script>
     <link rel="stylesheet" href="css/styling.css">
-    <body class="m-3 p-3">
+    <body class="m-5 p-5">
         <h1>DASHBOARD</h1>
         <div>
             <h3>Select one of the president candidates:</h3>
-            <form id="candidates" onsubmit="postCandidate()">
-
-            </form>
-
-
-
-            <div class="al">
-
-            </div>
-            <div class="jam">
-
-            </div>
-            <div class="dan">
-
-            </div>
+            <form id="candidates" onsubmit="postCandidate()"></form>
+            <div class="result"></div>
         </div>
         <script>
             getCandidates();
+            getCandidateVotes();
         </script>
     </body>
 </html>
