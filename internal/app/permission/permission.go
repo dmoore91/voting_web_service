@@ -7,6 +7,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"voting_web_service/internal/app/responses"
+	"voting_web_service/internal/app/session"
 
 	"voting_web_service/internal/app/users"
 )
@@ -49,7 +50,16 @@ func AddPermission(writer http.ResponseWriter, request *http.Request) {
 	//     schema:
 	//       "$ref": "#/definitions/generalResponse"
 
-	valid := true
+	decoder := json.NewDecoder(request.Body)
+	var lc users.LoginCreds
+	err := decoder.Decode(&lc)
+	if err != nil {
+		responses.GeneralBadRequest(writer, "Decode Failed")
+		log.Error(err)
+		return
+	}
+
+	valid := session.CheckSessionID(lc.SessionCreds.Username, lc.SessionCreds.SessionID)
 
 	if valid {
 		params := mux.Vars(request)
@@ -126,7 +136,16 @@ func GetUsersForPermission(writer http.ResponseWriter, request *http.Request) {
 	//     schema:
 	//       "$ref": "#/definitions/generalResponse"
 
-	valid := true
+	decoder := json.NewDecoder(request.Body)
+	var lc users.LoginCreds
+	err := decoder.Decode(&lc)
+	if err != nil {
+		responses.GeneralBadRequest(writer, "Decode Failed")
+		log.Error(err)
+		return
+	}
+
+	valid := session.CheckSessionID(lc.SessionCreds.Username, lc.SessionCreds.SessionID)
 
 	if valid {
 		params := mux.Vars(request)

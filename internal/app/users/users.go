@@ -3,6 +3,7 @@ package users
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
@@ -153,6 +154,8 @@ func LoginUser(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
+	fmt.Println(lc)
+
 	valid := session.CheckSessionID(lc.SessionCreds.Username, lc.SessionCreds.SessionID)
 
 	if valid {
@@ -230,7 +233,16 @@ func GetUser(writer http.ResponseWriter, request *http.Request) {
 
 	params := mux.Vars(request)
 
-	valid := true
+	decoder := json.NewDecoder(request.Body)
+	var lc LoginCreds
+	err := decoder.Decode(&lc)
+	if err != nil {
+		responses.GeneralBadRequest(writer, "Decode Failed")
+		log.Error(err)
+		return
+	}
+
+	valid := session.CheckSessionID(lc.SessionCreds.Username, lc.SessionCreds.SessionID)
 
 	if valid {
 		db, err := sql.Open("mysql", "root:VV@WF9Xf8C6!#Xy!@tcp(mysql_db:3306)/voting")
@@ -472,7 +484,16 @@ func GetPermissionsForUser(writer http.ResponseWriter, request *http.Request) {
 
 	params := mux.Vars(request)
 
-	valid := true
+	decoder := json.NewDecoder(request.Body)
+	var lc LoginCreds
+	err := decoder.Decode(&lc)
+	if err != nil {
+		responses.GeneralBadRequest(writer, "Decode Failed")
+		log.Error(err)
+		return
+	}
+
+	valid := session.CheckSessionID(lc.SessionCreds.Username, lc.SessionCreds.SessionID)
 
 	if valid {
 
@@ -566,7 +587,16 @@ func AddPermissionForUser(writer http.ResponseWriter, request *http.Request) {
 
 	params := mux.Vars(request)
 
-	valid := true
+	decoder := json.NewDecoder(request.Body)
+	var lc LoginCreds
+	err := decoder.Decode(&lc)
+	if err != nil {
+		responses.GeneralBadRequest(writer, "Decode Failed")
+		log.Error(err)
+		return
+	}
+
+	valid := session.CheckSessionID(lc.SessionCreds.Username, lc.SessionCreds.SessionID)
 
 	if valid {
 
@@ -673,7 +703,16 @@ func RemovePermissionForUser(writer http.ResponseWriter, request *http.Request) 
 
 	params := mux.Vars(request)
 
-	valid := true
+	decoder := json.NewDecoder(request.Body)
+	var lc LoginCreds
+	err := decoder.Decode(&lc)
+	if err != nil {
+		responses.GeneralBadRequest(writer, "Decode Failed")
+		log.Error(err)
+		return
+	}
+
+	valid := session.CheckSessionID(lc.SessionCreds.Username, lc.SessionCreds.SessionID)
 
 	if valid {
 
