@@ -5,7 +5,7 @@
     <script type="text/javascript" src="js/endpoints.js"></script>
     <link rel="stylesheet" href="css/styling.css">
     <body>
-        <form id="signup-form" onsubmit="signup()" style="border:1px solid #ccc">
+        <form id="signup-form" style="border:1px solid #ccc">
             <div class="container">
                 <h1>Sign Up</h1>
                 <p>Please fill in this form to create an account.</p>
@@ -44,17 +44,15 @@
 
                 <h1>Make sure you use Google Authenticator and scan the barcode using the APP. You need this to login.</h1>
                 <img id="secret">
-
-                <div class="clearfix">
-                    <button type="submit" class="signupbtn">Sign Up</button>
-                </div>
-
-                <div class="clearfix">
-                    <button onclick="location.href = './signin.html';" type="button" class="signinbtn">Have an account? Sign In</button>
-                </div>
             </div>
         </form>
+        <div class="clearfix">
+            <a type="submit" onclick="signup()" class="signupbtn btn text-align-center">Sign Up</a>
+        </div>
 
+        <div class="clearfix">
+            <button onclick="location.href = './signin.html';" type="button" class="signinbtn">Have an account? Sign In</button>
+        </div>
     </body>
     <script>
         $.ajax({
