@@ -94,8 +94,6 @@ function getCandidates() {
         url: "https://localhost:8880/voting/candidate",
         statusCode: {
             200: function(data) {
-                localStorage = window.localStorage;
-                localStorage.setItem('candidates', data);
                 for (var i = 0; i < data['candidates'].length; i++) {
                     var elem = data['candidates'][i];
                     console.log(elem)
@@ -135,31 +133,20 @@ function postCandidate() {
     }
 }
 
-
-function getCandidateInfo(candidateId) {
-    var candidateInfo = window.localStorage.getItem('candidates');
-    for (var i = 0, length = candidateInfo.length; i < length; i++) {
-        if (candidateInfo[i]['candidateId'] === candidateId) {
-            return candidateInfo[i];
-        }
-    }
-}
-
 function getCandidateVotes() {
     $.ajax({
         type: 'GET',
-        dataType: "text",
         url: "https://localhost:8880/voting/vote",
         statusCode: {
             200: function (data) {
-                console.log('getCandidateVotes', data);
-                var candidates = data['candidates'];
-
-                for (var i = 0, length = candidates.length; i < length; i++) {
-                    var userId = candidates[i]['userID'];
-                    var votes = candidates[i]['votes'];
-
-
+                console.log(data['candidates'])
+                for (var i = 0; i < data['candidates'].length; i++) {
+                    $('.result').append(
+                        data['candidates'][i].first_name + ' '
+                    ).append(data['candidates'][i].last_name + ' Count: '
+                    ).append(data['candidates'][i].votes
+                    ).append(' Party: ' + data['candidates'][i].party
+                    ).append('<br>')
                 }
             }
         }
