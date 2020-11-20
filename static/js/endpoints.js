@@ -72,8 +72,6 @@ function validate2FA() {
 
     formData['username'] = storage['username'];
 
-    JSON.stringify(formData);
-
     $.ajax({
         type: 'POST',
         data: JSON.stringify(formData),
@@ -81,6 +79,7 @@ function validate2FA() {
         url: "https://localhost:8880/voting/tfa_validate",
         statusCode: {
             200: function() {
+                storage['session_id'] = formData['token'];
                 window.location.href = './dashboard.html';
             }
         }
@@ -150,6 +149,24 @@ function getCandidateVotes() {
                     ).append(' Party: ' + data['candidates'][i].party
                     ).append('<br>')
                 }
+            }
+        }
+    });
+}
+
+/**
+ *
+ */
+function authenticateUser() {
+    var localStorage = window.localStorage;
+
+    $.ajax({
+        type: 'GET',
+        data: 'text',
+        url: "https://localhost:8880/voting/session/" + localStorage.getItem("username") + "/" + localStorage.getItem("session_id"),
+        complete: function(xhr, textStatus) {
+            if (xhr.status !== 200) {
+                window.location.href = './index.html';
             }
         }
     });

@@ -69,3 +69,10 @@ button:hover {
         width: 100%;
     }
 }
+
+.clearfix {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+}
