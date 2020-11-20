@@ -14,10 +14,7 @@ var secret = speakeasy.generateSecret({
     name: 'voting_two_factor_authenticator'
 });
 
-// console.log(secret);
-
 qrcode.toDataURL(secret.otpauth_url, function(err, data) {
-    // console.log(data);
 
     console.log( JSON.stringify({
         'secret': secret['ascii'],

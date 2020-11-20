@@ -24,14 +24,12 @@ function signin() {
 
     storage['username'] = formData['username'];
 
-    JSON.stringify(formData);
-
     $.ajax({
         type: 'POST',
         data: JSON.stringify(formData),
         dataType: "text",
         url: "https://localhost:8880/voting/user/login",
-        success:  function() {
+        success: function() {
             window.location.href = './tfa.html';
         }
     });
@@ -87,7 +85,7 @@ function validate2FA() {
 }
 
 /**
- * Gets the candidates
+ * Gets the candidates so users can see it
  */
 function getCandidates() {
     $.ajax({
@@ -118,6 +116,9 @@ function getCandidates() {
     });
 }
 
+/**
+ * Posts the user input into the database so it is recorded
+ */
 function postCandidate() {
     var radios = document.getElementsByClassName('cand');
 
@@ -134,6 +135,9 @@ function postCandidate() {
     }
 }
 
+/***
+ * Gets the candidate votes, so it can be displayed in the results
+ */
 function getCandidateVotes() {
     $.ajax({
         type: 'GET',
@@ -155,7 +159,7 @@ function getCandidateVotes() {
 }
 
 /**
- *
+ * Authenticates the user that enters the dashboard for security purposes
  */
 function authenticateUser() {
     var localStorage = window.localStorage;
